@@ -13,5 +13,6 @@ public class BaseResponse {
 	public static final String NOT_FOUND = "Not Found";
 	
 	private String message;
+	private Object data;
 
 }
