@@ -47,7 +47,7 @@ public class JwtTokenProvider {
 
 	@PostConstruct
 	protected void init() {
-		secretKey = Base64.getEncoder().encodeToString(secretKey.getBytes());
+		secretKey = "nVoEUAwRumbvrZk40Cma7h68DQ9GG5qtwxhiGCNyMsV4Q7I0fMoHFxI0swZRNETooB3qTlNojQlYobdVS7GayIWnzl7KIcCjsJvmeN068Eq3EJjBoj5VXlYospPsxyhrIPRXwXsOCyHo58PW3mHY8Rldz7INWa8YOaAqPwxtRxuNBX3FlRt0BY65Fx4KIkbdbbOIyHuxul0QDriE5zF64fk8yJjNSzk8BbBgJPHqrqylepPeJPNelhqiUcjNhyRY";
 	}
 	
 	public ResponseCreateToken createToken(String username) {
@@ -61,7 +61,7 @@ public class JwtTokenProvider {
 
 		Date now = new Date();
 		Date validity = new Date(now.getTime() + validityInMilliseconds);
-
+		log.info("expired token until : {} for user : {}", validity, username);
 		String jwt = Jwts.builder()//
 				.setClaims(claims)//
 				.setIssuedAt(now)//
