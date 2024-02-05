@@ -20,6 +20,6 @@ public interface RoleRepository extends CrudRepository<Role, String> {
 	@Query(nativeQuery = true, value = "select u.name, u.uuid as uuid, GROUP_CONCAT(r.name separator ';') as roles from roles r join users u on r.user_uuid = u.uuid group by u.uuid")
 	List<ModelUserAndRoles> getAllUserAndRoles();
 	
-	@Query(nativeQuery = true, value = "select u.name, u.uuid as uuid, GROUP_CONCAT(r.name separator ';') as roles from roles r join users u on r.user_uuid = u.uuid where u.name = :name group by r.user_uuid")
+	@Query(nativeQuery = true, value = "select u.name, u.uuid as uuid, u.password_data as passwordData, GROUP_CONCAT(r.name separator ';') as roles from roles r join users u on r.user_uuid = u.uuid where u.name = :name group by r.user_uuid")
 	ModelUserAndRoles getUserAndRoles(@Param("name") String name);
 }

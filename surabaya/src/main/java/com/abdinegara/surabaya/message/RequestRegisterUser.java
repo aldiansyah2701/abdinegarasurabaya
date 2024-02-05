@@ -15,4 +15,13 @@ public class RequestRegisterUser {
 	
 	private List<String> roles;
 	
+	private TYPE type;
+	
+	private RequestRegisterSiswa siswa;
+	
+	
+	public enum TYPE{
+		ADMIN, SISWA
+	}
+	
 }

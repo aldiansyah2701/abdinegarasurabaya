@@ -13,7 +13,7 @@ import lombok.Setter;
 public class Role extends BaseEntity  {
 	
 	public enum ROLE{
-		ADMIN, SUPERVISOR, CUSTOMERSERVICE
+		ADMIN, SUPERVISOR, CUSTOMERSERVICE, SISWA
 	}
 	
 	@Id

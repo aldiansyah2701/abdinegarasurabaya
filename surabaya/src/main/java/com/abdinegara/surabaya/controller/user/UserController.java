@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.abdinegara.surabaya.message.RequestLogin;
 import com.abdinegara.surabaya.message.RequestRegisterUser;
+import com.abdinegara.surabaya.message.RequestUpdateUser;
 import com.abdinegara.surabaya.service.UserService;
 
 @RestController
@@ -39,6 +40,12 @@ public class UserController {
 	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SUPERVISOR')")
 	public ResponseEntity<Object> updateUser(@RequestBody RequestRegisterUser request) {
 		return userService.updateUser(request);
+	}
+	
+	@PutMapping(path = "/update-password", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SUPERVISOR')")
+	public ResponseEntity<Object> updatePassword(@RequestBody RequestUpdateUser request) {
+		return userService.updatePasswordUser(request);
 	}
 
 	@GetMapping(value = "/all")

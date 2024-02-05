@@ -25,7 +25,7 @@ public class SoalService {
 	@Autowired
 	private BuatSoalRepository buatSoalRepository;
 	
-	private static final String UPLOAD_DIR = "C:\\Users\\Dell3420\\Documents\\exelabdinegara";
+	private static final String UPLOAD_DIR = "C:\\Users\\Dell3420\\Documents\\abdinegaraexel";
 	
 	@Transactional(readOnly = false)
 	public ResponseEntity<Object> createSoal(String namaSoal, String jenisSoal, String jenisSiswa, MultipartFile file) {

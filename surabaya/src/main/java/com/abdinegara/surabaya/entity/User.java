@@ -35,5 +35,8 @@ public class User extends BaseEntity implements Serializable{
 	
 	@Column(name= "is_active")
 	private boolean isActive;
+	
+	@Column
+	private String passwordData;
 
 }

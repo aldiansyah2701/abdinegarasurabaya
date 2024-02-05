@@ -19,13 +19,17 @@ import org.springframework.transaction.annotation.Transactional;
 import com.abdinegara.surabaya.entity.ModelUserAndRoles;
 import com.abdinegara.surabaya.entity.Role;
 import com.abdinegara.surabaya.entity.Role.ROLE;
+import com.abdinegara.surabaya.entity.Siswa;
 import com.abdinegara.surabaya.entity.User;
 import com.abdinegara.surabaya.kernel.JwtTokenProvider;
 import com.abdinegara.surabaya.message.BaseResponse;
 import com.abdinegara.surabaya.message.RequestRegisterUser;
+import com.abdinegara.surabaya.message.RequestRegisterUser.TYPE;
+import com.abdinegara.surabaya.message.RequestUpdateUser;
 import com.abdinegara.surabaya.message.ResponseCreateToken;
 import com.abdinegara.surabaya.message.ResponseGetAllUsers;
 import com.abdinegara.surabaya.repository.RoleRepository;
+import com.abdinegara.surabaya.repository.SiswaRepository;
 import com.abdinegara.surabaya.repository.UserRepository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +53,9 @@ public class UserService {
 	@Autowired
 	private AuthenticationManager authenticationManager;
 	
+	@Autowired
+	private SiswaRepository siswaRepository;
+	
 	public ResponseEntity<Object> loginUser(String userName, String password) {
 		BaseResponse response = new BaseResponse();
 		try {
@@ -64,7 +71,7 @@ public class UserService {
 		} catch (AuthenticationException e) {
 			response.setMessage(BaseResponse.FAILED);
 			log.info("Login failed");
-			return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 		}
 	}
 
@@ -76,9 +83,12 @@ public class UserService {
 			response.setMessage(BaseResponse.ALREADY_EXIST);
 			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 		}
+		
 		User user = new User();
 		user.setName(data.getUsername());
 		user.setPassword(passwordEncoder.encode(data.getPassword()));
+		EncryptDecryptModal decryptEncrypt = new EncryptDecryptModal();
+		user.setPasswordData(decryptEncrypt.setSensitiveData(data.getPassword()));
 		user.setCreatedDate(new Date());
 		user.setActive(true);
 		user = userRepository.save(user);
@@ -89,6 +99,16 @@ public class UserService {
 			role.setCreatedDate(new Date());
 			role.setUser(user);
 			role = roleRepository.save(role);
+		}
+		
+		if(TYPE.SISWA.equals(data.getType())) {
+			Siswa siswa = new Siswa();
+			siswa.setCreatedDate(new Date());
+			siswa.setEmail(data.getSiswa().getEmail());
+			siswa.setHandphone(data.getSiswa().getHandphone());
+			siswa.setName(data.getSiswa().getName());
+			siswa.setTitle(data.getSiswa().getTitle());
+			siswaRepository.save(siswa);
 		}
 		response.setMessage(BaseResponse.SUCCESS);
 		return new ResponseEntity<>(response, HttpStatus.OK);
@@ -142,6 +162,9 @@ public class UserService {
 		resp.setName(data.getName());
 		resp.setUuid(data.getUuid());
 		resp.setRoles(Arrays.asList(data.getRoles().split(";")));
+		EncryptDecryptModal decryptEncrypt = new EncryptDecryptModal();
+		String passwrod = decryptEncrypt.getSensitiveData(data.getPasswordData());
+		log.info("user : {}. with : {}", data.getName(), passwrod);
 
 		return new ResponseEntity<>(resp, HttpStatus.OK);
 	}
@@ -153,6 +176,26 @@ public class UserService {
 
 		if (user != null) {
 			user.setActive(false);
+			user = userRepository.save(user);
+
+			response.setMessage(BaseResponse.SUCCESS);
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+		response.setMessage(BaseResponse.NOT_FOUND);
+		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+
+	}
+	
+	@Transactional(readOnly = false)
+	public ResponseEntity<Object> updatePasswordUser(RequestUpdateUser data) {
+		BaseResponse response = new BaseResponse();
+		User user = userRepository.findByName(data.getUsername());
+
+		if (user != null) {
+			user.setActive(true);
+			user.setPassword(passwordEncoder.encode(data.getPassword()));
+			EncryptDecryptModal decryptEncrypt = new EncryptDecryptModal();
+			user.setPasswordData(decryptEncrypt.setSensitiveData(data.getPassword()));
 			user = userRepository.save(user);
 
 			response.setMessage(BaseResponse.SUCCESS);

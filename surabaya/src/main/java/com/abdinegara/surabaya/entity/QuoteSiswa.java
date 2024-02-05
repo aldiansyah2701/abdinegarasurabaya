@@ -32,4 +32,10 @@ private static final long serialVersionUID = 4211854570169058068L;
 
 	@Column(name = "quote")
 	private String quote;
+	
+	@Column(name = "file_path_gambar")
+	private String filePathGambar;
+	
+	@Column(name = "file_path_video")
+	private String filePathVideo;
 }
