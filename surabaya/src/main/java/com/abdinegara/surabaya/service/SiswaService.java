@@ -2,12 +2,18 @@ package com.abdinegara.surabaya.service;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import javax.servlet.ServletContext;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -43,6 +49,15 @@ public class SiswaService {
 	@Autowired
 	private PembelianSoalRepository pembelianSoalRepository;
 	
+	@Value("${directory.quote.gambar}")
+	private String directoryGambar;
+	
+	@Value("${directory.quote.video}")
+	private String directoryVideo;
+	
+	@Autowired
+	private ResourceLoader resourceLoader;
+	
 	@Transactional(readOnly = false)
 	public ResponseEntity<Object> createQuote(String type, RequestQuote request) {
 		BaseResponse response = new BaseResponse();
@@ -68,8 +83,8 @@ public class SiswaService {
 		
 	}
 	
-	private static final String UPLOAD_DIR_GAMBAR = "C:\\Users\\Dell3420\\Documents\\abdinegaragambar";
-	private static final String UPLOAD_DIR_VIDEO = "C:\\Users\\Dell3420\\Documents\\abdinegaravideo";
+//	private static final String UPLOAD_DIR_GAMBAR = "C:\\Users\\Dell3420\\Documents\\abdinegaragambar";
+//	private static final String UPLOAD_DIR_VIDEO = "C:\\Users\\Dell3420\\Documents\\abdinegaravideo";
 
 	@Transactional(readOnly = false)
 	public ResponseEntity<Object> createQuote(String type, String title, String quote, MultipartFile fileGambar, MultipartFile fileVideo) {
@@ -92,37 +107,65 @@ public class SiswaService {
     			quoteSiswa.setQuote(quote);
     		}
 			
-			File uploadDirGambar = new File(UPLOAD_DIR_GAMBAR);
+			String uploadGambarPath = "";
+			String uploadVideoPath = "";
+			try {
+				Resource resource = resourceLoader.getResource("classpath:/static"+directoryGambar);
+				File file2 = resource.getFile();
+				uploadGambarPath = file2.getAbsolutePath();
+				
+				Resource resourceVideo = resourceLoader.getResource("classpath:/static"+directoryVideo);
+				File file3 = resourceVideo.getFile();
+				uploadVideoPath = file3.getAbsolutePath();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				response.setMessage(e.getMessage());
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
+			
+//			String uploadGambarPath = servletContext.getRealPath("/static"+directoryGambar);
+			File uploadDirGambar = new File(uploadGambarPath);
             if (!uploadDirGambar.exists()) {
             	uploadDirGambar.mkdir();
             }
             
-            File uploadDirVideo = new File(UPLOAD_DIR_VIDEO);
+//            String uploadVideoPath = servletContext.getRealPath("/static"+directoryVideo);
+            File uploadDirVideo = new File(uploadVideoPath);
             if (!uploadDirVideo.exists()) {
             	uploadDirVideo.mkdir();
             }
             
          // Save the file to the uploads directory
             if(fileGambar != null) {
-            	File gambarFile = new File(uploadDirGambar, fileGambar.getOriginalFilename());
-            	try (FileOutputStream fos = new FileOutputStream(gambarFile)) {
-            		fos.write(fileGambar.getBytes());
+            	
+            	 // Save the file to the soal folder
+    	        File destFile = new File(uploadDirGambar.getAbsolutePath() + File.separator + fileGambar.getOriginalFilename());
+    	        fileGambar.transferTo(destFile);
+    	        
+//            	File gambarFile = new File(uploadDirGambar, fileGambar.getOriginalFilename());
+//            	try (FileOutputStream fos = new FileOutputStream(gambarFile)) {
+//            		fos.write(fileGambar.getBytes());
             		
-            		String pathGambar = UPLOAD_DIR_GAMBAR;      
-            		pathGambar = pathGambar +"\\"+ fileGambar.getOriginalFilename();
+            		String pathGambar = directoryGambar;      
+            		pathGambar = pathGambar +"/"+ fileGambar.getOriginalFilename();
             		quoteSiswa.setFilePathGambar(pathGambar);
-            	}            	
+//            	}            	
             }
             
             if(fileVideo != null) {
-            	File videoFile = new File(uploadDirVideo, fileVideo.getOriginalFilename());
-            	try (FileOutputStream fos = new FileOutputStream(videoFile)) {
-            		fos.write(fileVideo.getBytes());
+            	 // Save the file to the soal folder
+    	        File destFile = new File(uploadDirVideo.getAbsolutePath() + File.separator + fileVideo.getOriginalFilename());
+    	        fileVideo.transferTo(destFile);
+    	        
+//            	File videoFile = new File(uploadDirVideo, fileVideo.getOriginalFilename());
+//            	try (FileOutputStream fos = new FileOutputStream(videoFile)) {
+//            		fos.write(fileVideo.getBytes());
             		
-            		String pathVideo = UPLOAD_DIR_VIDEO;      
-            		pathVideo = pathVideo +"\\"+ fileVideo.getOriginalFilename();
+            		String pathVideo = directoryVideo;      
+            		pathVideo = pathVideo +"/"+ fileVideo.getOriginalFilename();
             		quoteSiswa.setFilePathVideo(pathVideo);
-            	}            	
+//            	}            	
             }
             
             

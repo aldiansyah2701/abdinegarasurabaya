@@ -2,10 +2,13 @@ package com.abdinegara.surabaya.controller.soal;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,7 +47,7 @@ public class SoalController {
 		return soalService.createSoal(namaSoal, jenisSoal, jenisSiswa, files);
 	}
 	
-	@PostMapping(path = "/pilihan/ganda", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE } )
+	@PostMapping(path = "/create/pilihan/ganda", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE } )
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<Object> createSoalPilihanGanda(
 			@RequestParam("namaSoal") String namaSoal,
@@ -55,7 +58,7 @@ public class SoalController {
 		return soalService.createSoalWithUpload(namaSoal, durasi, jawaban, deskripsi, files, directoryPilihanGanda, SOALTYPE.PILIHANGANDA);
 	}
 	
-	@PostMapping(path = "/essay", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE } )
+	@PostMapping(path = "/create/essay", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE } )
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<Object> createSoalEssay(
 			@RequestParam("namaSoal") String namaSoal,
@@ -67,9 +70,60 @@ public class SoalController {
 	}
 
 	
-	@PostMapping(path = "/pauli", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(path = "/create/pauli", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
-	public ResponseEntity<Object> loginUser(@RequestBody RequestCreateSoalPauli request) {
-		return soalService.createSoalPauli(request);
+	public ResponseEntity<Object> createSoalPauli(@RequestBody RequestCreateSoalPauli request) {
+		return soalService.createSoalPauli("", request);
+	}
+	
+	@PostMapping(path = "/update/pilihan/ganda", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE } )
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> updateSoalPilihanGanda(
+			@RequestParam("uuid") String uuid,
+			@RequestParam("namaSoal") String namaSoal,
+			@RequestParam("durasi") String durasi,
+			@RequestParam("jawaban") String jawaban,
+			@RequestParam("deskripsi") String deskripsi,
+			@RequestParam(name = "file", required = false) MultipartFile files) {
+		return soalService.updateSoalWithUpload(uuid, namaSoal, durasi, jawaban, deskripsi, files, directoryPilihanGanda, SOALTYPE.PILIHANGANDA);
+	}
+	
+	@PostMapping(path = "/update/essay", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE } )
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> updateSoalEssay(
+			@RequestParam("uuid") String uuid,
+			@RequestParam("namaSoal") String namaSoal,
+			@RequestParam("durasi") String durasi,
+			@RequestParam("jawaban") String jawaban,
+			@RequestParam("deskripsi") String deskripsi,
+			@RequestParam(name = "file", required = false) MultipartFile files) {
+		return soalService.updateSoalWithUpload(uuid, namaSoal, durasi, jawaban, deskripsi, files, directoryEssay, SOALTYPE.ESSAY);
+	}
+
+	
+	@PostMapping(path = "/update/pauli", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> updateSoalPauli(
+			@RequestParam("uuid") String uuid,
+			@RequestBody RequestCreateSoalPauli request) {
+		return soalService.createSoalPauli(uuid, request);
+	}
+	
+	@GetMapping(value = "/list/{type}")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> getListSiswa(@PathVariable("type") SOALTYPE type, Pageable pageable) {
+		return soalService.getSoal(type, pageable);
+	}
+	
+	@GetMapping(value = "/detail/{type}/{uuid}")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> getDetailSiswa(@PathVariable("type") SOALTYPE type, @PathVariable("uuid") String uuid) {
+		return soalService.getSoalDetail(type, uuid);
+	}
+	
+	@DeleteMapping(value = "/delete/{type}/{uuid}")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> deleteUser(@PathVariable("type") SOALTYPE type, @PathVariable("uuid") String uuid) {
+		return soalService.deleteSoal(type, uuid);
 	}
 }
