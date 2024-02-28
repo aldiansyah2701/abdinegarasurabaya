@@ -87,6 +87,25 @@ public class SoalController {
 		return soalService.uploadImagePreview(user.getName(), images);
 	}
 	
+	@PostMapping(path = "/upload/video", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE } )
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> uploadVideo(
+			@RequestParam("namaVideo") String namaVideo,
+			@RequestParam("deskripsi") String deskripsi,
+			@RequestParam("jenis") String jenis,
+			@RequestParam(name = "video", required = false) MultipartFile video,
+			HttpServletRequest request) {
+		Principal user = request.getUserPrincipal();
+
+		return soalService.uploadPembelajaranVideo(namaVideo, deskripsi, jenis, video);
+	}
+	
+	@GetMapping(value = "/list/video")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> getListVideo(Pageable pageable) {
+		return soalService.getVideos(pageable);
+	}
+	
 	@PostMapping(path = "/create/pauli", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<Object> createSoalPauli(@RequestBody RequestCreateSoalPauli request) {

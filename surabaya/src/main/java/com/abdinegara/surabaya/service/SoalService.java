@@ -6,12 +6,16 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.ServletContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.abdinegara.surabaya.entity.BuatSoal;
+import com.abdinegara.surabaya.entity.PembelajaranVideo;
 import com.abdinegara.surabaya.entity.SoalAssetImage;
 import com.abdinegara.surabaya.entity.SoalEssay;
 import com.abdinegara.surabaya.entity.SoalPauli;
@@ -34,6 +39,7 @@ import com.abdinegara.surabaya.entity.SoalPilihanGanda;
 import com.abdinegara.surabaya.message.BaseResponse;
 import com.abdinegara.surabaya.message.RequestCreateSoalPauli;
 import com.abdinegara.surabaya.repository.BuatSoalRepository;
+import com.abdinegara.surabaya.repository.PembelajaranVideoRepository;
 import com.abdinegara.surabaya.repository.SoalAssetImageRepository;
 import com.abdinegara.surabaya.repository.SoalEssayRepository;
 import com.abdinegara.surabaya.repository.SoalPauliRepository;
@@ -63,11 +69,18 @@ public class SoalService {
 	@Autowired
 	private SoalAssetImageRepository soalAssetImageRepository;
 	
+	@Autowired
+	private PembelajaranVideoRepository pembelajaranVideoRepository;
+	
 	@Value("${directory.soal.asset.image}")
 	private String directoryAssetImage;
 	
 	@Value("${directory.soal.preview.image}")
 	private String directoryPreviewImage;
+	
+	@Value("${directory.soal.video}")
+	private String directoryVideo;
+	
 
 	private static final String UPLOAD_DIR = "C:\\Users\\Dell3420\\Documents\\abdinegaraexel";
 
@@ -563,5 +576,91 @@ public class SoalService {
 		response.setMessage(BaseResponse.SUCCESS);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
+	
+	@Transactional(readOnly = false)
+	public ResponseEntity<Object> uploadPembelajaranVideo(String namaVideo, String deskripsi, String jenis,
+			MultipartFile video) {
+		BaseResponse response = new BaseResponse();
+//		UUID uuid = UUID.randomUUID();
+//        LocalDate currentDate = LocalDate.now();
+//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+//        String formattedDate = currentDate.format(formatter);
+
+		String uploadVideoPath = "";
+		try {
+			Resource resource = resourceLoader.getResource("classpath:/static" + directoryVideo);
+			File file2 = resource.getFile();
+			uploadVideoPath = file2.getAbsolutePath();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+
+		}
+		File uploadVideoDir = new File(uploadVideoPath);
+		if (!uploadVideoDir.exists()) {
+			uploadVideoDir.mkdir();
+		}
+//				String uuidText = uuid.toString();
+		// Save the file to the soal folder
+		File destVideoFile = new File(uploadVideoDir.getAbsolutePath() + File.separator + video.getOriginalFilename());
+		try {
+			video.transferTo(destVideoFile);
+			String pathVideo = directoryVideo;
+			pathVideo = pathVideo + "/" + video.getOriginalFilename();
+
+			PembelajaranVideo data = new PembelajaranVideo();
+			data.setCreatedDate(new Date());
+			data.setDeskripsi(deskripsi);
+			data.setFilePath(pathVideo);
+			
+			String key = "zzzzzzzzzzzzzzzz"; // 16, 24, or 32 bytes
+		    String iv = "1234567890123456"; // Exactly 16 bytes
+		    String pathVideoEnryp = "";
+	        try {
+				String encryptedData = encrypt(pathVideo, key, iv);
+				System.out.println("this.filePath " + pathVideo);
+				System.out.println("encryptedData " + encryptedData);
+				pathVideoEnryp = encryptedData;
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	        
+			data.setFilePathEncrypt(pathVideoEnryp);
+			data.setJenis(jenis);
+			data.setNamaVideo(namaVideo);
+
+			pembelajaranVideoRepository.save(data);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		response.setMessage(BaseResponse.SUCCESS);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	public ResponseEntity<Object> getVideos(Pageable pageable) {
+		BaseResponse response = new BaseResponse();
+		response.setMessage("Data found successfully");	
+		Page<PembelajaranVideo> data = pembelajaranVideoRepository.findAll(pageable);
+		response.setData(data);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	
+	}
+	
+	 public static String encrypt(String plainText, String key, String iv) throws Exception {
+	        byte[] keyBytes = key.getBytes();
+	        SecretKeySpec secretKeySpec = new SecretKeySpec(keyBytes, "AES");
+
+	        byte[] ivBytes = iv.getBytes();
+	        IvParameterSpec ivParameterSpec = new IvParameterSpec(ivBytes);
+
+	        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+	        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivParameterSpec);
+	        byte[] encryptedBytes = cipher.doFinal(plainText.getBytes("UTF-8"));
+
+	        return Base64.getEncoder().encodeToString(encryptedBytes);
+	    }
 
 }
