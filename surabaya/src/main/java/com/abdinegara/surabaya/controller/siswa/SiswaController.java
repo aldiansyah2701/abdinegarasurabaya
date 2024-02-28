@@ -18,7 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.abdinegara.surabaya.message.RequestQuote;
 import com.abdinegara.surabaya.service.SiswaService;
 
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin
 @RestController
 @RequestMapping("/api/v1/siswa")
 public class SiswaController {
@@ -38,8 +38,8 @@ public class SiswaController {
 			@PathVariable("type") String type,
 			@RequestParam("title") String title,
 			@RequestParam("quote") String quote,
-			@RequestParam(name = "file-gambar", required = true) MultipartFile fileGambar,
-			@RequestParam(name = "file-video", required = true) MultipartFile filesVideo) {
+			@RequestParam(name = "file-gambar", required = false) MultipartFile fileGambar,
+			@RequestParam(name = "file-video", required = false) MultipartFile filesVideo) {
 		return siswaService.createQuote(type, title,quote,fileGambar,filesVideo);
 	}
 	

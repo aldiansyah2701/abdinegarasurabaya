@@ -12,4 +12,5 @@ public class RequestCreateSoalPauli {
 	private String soal;
 	private String jawaban;
 	private String deskripsi;
+	private String jenis;
 }

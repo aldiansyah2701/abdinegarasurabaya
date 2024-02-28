@@ -3,8 +3,14 @@ package com.abdinegara.surabaya.service;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.IntStream;
 
 import javax.servlet.ServletContext;
 
@@ -21,12 +27,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.abdinegara.surabaya.entity.BuatSoal;
+import com.abdinegara.surabaya.entity.SoalAssetImage;
 import com.abdinegara.surabaya.entity.SoalEssay;
 import com.abdinegara.surabaya.entity.SoalPauli;
 import com.abdinegara.surabaya.entity.SoalPilihanGanda;
 import com.abdinegara.surabaya.message.BaseResponse;
 import com.abdinegara.surabaya.message.RequestCreateSoalPauli;
 import com.abdinegara.surabaya.repository.BuatSoalRepository;
+import com.abdinegara.surabaya.repository.SoalAssetImageRepository;
 import com.abdinegara.surabaya.repository.SoalEssayRepository;
 import com.abdinegara.surabaya.repository.SoalPauliRepository;
 import com.abdinegara.surabaya.repository.SoalPilihanGandaRepository;
@@ -51,6 +59,15 @@ public class SoalService {
 	
 	@Autowired
 	private ResourceLoader resourceLoader;
+	
+	@Autowired
+	private SoalAssetImageRepository soalAssetImageRepository;
+	
+	@Value("${directory.soal.asset.image}")
+	private String directoryAssetImage;
+	
+	@Value("${directory.soal.preview.image}")
+	private String directoryPreviewImage;
 
 	private static final String UPLOAD_DIR = "C:\\Users\\Dell3420\\Documents\\abdinegaraexel";
 
@@ -107,7 +124,7 @@ public class SoalService {
 
 	@Transactional(readOnly = false)
 	public ResponseEntity<Object> createSoalWithUpload(String namaSoal, String durasi, String jawaban, String deskripsi,
-			MultipartFile file, String directory, SOALTYPE type) {
+			MultipartFile file, MultipartFile[] images, String directory, SOALTYPE type, String jenis) {
 		BaseResponse response = new BaseResponse();
 		
 		if (SOALTYPE.PILIHANGANDA.equals(type)) {
@@ -155,14 +172,55 @@ public class SoalService {
 
 				String path = directory;
 				path = path + "/" + file.getOriginalFilename();
-
+				
+				List<String> uuidsSoal = new ArrayList<>();
 				if (SOALTYPE.PILIHANGANDA.equals(type)) {
-					updatePilihanGanda("", namaSoal, durasi, jawaban, deskripsi, file, path);
+					String uuidSoal = updatePilihanGanda("", namaSoal, durasi, jawaban, deskripsi, file, path, jenis);
+					uuidsSoal.add(uuidSoal);
 				} else if (SOALTYPE.ESSAY.equals(type)) {
-					updateEssay("", namaSoal, durasi, jawaban, deskripsi, file, path);
+					String uuidSoal = updateEssay("", namaSoal, durasi, jawaban, deskripsi, file, path, jenis);
+					uuidsSoal.add(uuidSoal);
 				}
 
 //			}
+				if(images != null && images.length > 0) {
+					IntStream.range(0, images.length).forEach(index -> {
+						MultipartFile imageFile = images[index];
+						
+						String uploadImagePath = "";
+						try {
+							Resource resource = resourceLoader.getResource("classpath:/static"+directoryAssetImage);
+							File file2 = resource.getFile();
+							uploadImagePath = file2.getAbsolutePath();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+							
+						}
+						File uploadImageDir = new File(uploadImagePath);
+						if (!uploadImageDir.exists()) {
+							uploadImageDir.mkdir();
+						}
+						
+						String uuidSoal = uuidsSoal.isEmpty() ? null : uuidsSoal.get(0);
+						// Save the file to the soal folder
+						File destImageFile = new File(uploadImageDir.getAbsolutePath() + File.separator + uuidSoal+"_"+imageFile.getOriginalFilename());
+						try {
+							imageFile.transferTo(destImageFile);
+							String pathImage = directoryAssetImage;
+							pathImage = pathImage + "/" + uuidSoal+"_"+imageFile.getOriginalFilename();
+							SoalAssetImage soalAssetImage = new SoalAssetImage();
+							soalAssetImage.setSoalType(type.toString());
+							soalAssetImage.setUuidSoal(uuidSoal);
+							soalAssetImage.setFilePath(pathImage);
+							
+							soalAssetImageRepository.save(soalAssetImage);
+						}catch (Exception e) {
+							e.printStackTrace();
+						}						
+					});
+					
+				}
 
 			response.setMessage(BaseResponse.SUCCESS);
 			return new ResponseEntity<>(response, HttpStatus.OK);
@@ -173,8 +231,8 @@ public class SoalService {
 
 	}
 
-	private void updateEssay(String uuid, String namaSoal, String durasi, String jawaban, String deskripsi, MultipartFile file,
-			String path) {
+	private String updateEssay(String uuid, String namaSoal, String durasi, String jawaban, String deskripsi, MultipartFile file,
+			String path, String jenis) {
 		SoalEssay soal = new SoalEssay();
 		Optional<SoalEssay> soalExist = soalEssayRepository.findById(uuid);
 		if (soalExist.isPresent()) {
@@ -185,7 +243,7 @@ public class SoalService {
 			soal.setDeskripsi(deskripsi == null ? soal.getDeskripsi() : deskripsi);
 			soal.setDurasi(durasi == null ? soal.getDurasi() : durasi);
 			soal.setJawaban(jawaban == null ? soal.getJawaban() : jawaban);
-
+			soal.setJenis(jenis == null ? soal.getJenis(): jenis);
 
 		} else {
 
@@ -195,13 +253,15 @@ public class SoalService {
 			soal.setDeskripsi(deskripsi);
 			soal.setDurasi(durasi);
 			soal.setJawaban(jawaban);
+			soal.setJenis(jenis);
 		}
 
 		soalEssayRepository.save(soal);
+		return soal.getUuid();
 	}
 
-	private void updatePilihanGanda(String uuid, String namaSoal, String durasi, String jawaban, String deskripsi,
-			MultipartFile file, String path) {
+	private String updatePilihanGanda(String uuid, String namaSoal, String durasi, String jawaban, String deskripsi,
+			MultipartFile file, String path, String jenis) {
 		SoalPilihanGanda soal = new SoalPilihanGanda();
 		Optional<SoalPilihanGanda> soalExist = soalPilihanGandaRepository.findById(uuid);
 		if (soalExist.isPresent()) {
@@ -212,6 +272,7 @@ public class SoalService {
 			soal.setDeskripsi(deskripsi == null ? soal.getDeskripsi() : deskripsi);
 			soal.setDurasi(durasi == null ? soal.getDurasi() : durasi);
 			soal.setJawaban(jawaban == null ? soal.getJawaban() : jawaban);
+			soal.setJenis(jenis == null ? soal.getJenis(): jenis);
 
 		} else {
 
@@ -221,9 +282,11 @@ public class SoalService {
 			soal.setDeskripsi(deskripsi);
 			soal.setDurasi(durasi);
 			soal.setJawaban(jawaban);
+			soal.setJenis(jenis);
 		}
 
 		soalPilihanGandaRepository.save(soal);
+		return soal.getUuid();
 	}
 
 	@Transactional(readOnly = false)
@@ -251,6 +314,7 @@ public class SoalService {
 			soal.setDurasi(request.getDurasi() == null ? soal.getDurasi() : request.getDurasi());
 			soal.setJawaban(request.getJawaban() == null ? soal.getJawaban() : request.getJawaban());
 			soal.setSoal(request.getSoal() == null ? soal.getSoal() : request.getSoal());
+			soal.setJenis(request.getJenis() == null ? soal.getJenis() : request.getJenis());
 		} else {
 
 			soal.setCreatedDate(new Date());
@@ -259,6 +323,7 @@ public class SoalService {
 			soal.setDurasi(request.getDurasi());
 			soal.setJawaban(request.getJawaban());
 			soal.setSoal(request.getSoal());
+			soal.setJenis(request.getJenis());
 		}
 
 		soalPauliRepository.save(soal);
@@ -295,14 +360,18 @@ public class SoalService {
 		if (SOALTYPE.PILIHANGANDA.equals(type)) {
 			Optional<SoalPilihanGanda> data = soalPilihanGandaRepository.findById(uuid);
 			if (data.isPresent()) {
-
+				List<SoalAssetImage> assetImages = soalAssetImageRepository.findByUuidSoal(uuid);
+				SoalPilihanGanda dataResp = data.get();
+				dataResp.setAssetImage(assetImages);
 				response.setData(data);
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
 		} else if (SOALTYPE.ESSAY.equals(type)) {
 			Optional<SoalEssay> data = soalEssayRepository.findById(uuid);
 			if (data.isPresent()) {
-
+				List<SoalAssetImage> assetImages = soalAssetImageRepository.findByUuidSoal(uuid);
+				SoalEssay dataResp = data.get();
+				dataResp.setAssetImage(assetImages);
 				response.setData(data);
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
@@ -353,7 +422,7 @@ public class SoalService {
 	
 	@Transactional(readOnly = false)
 	public ResponseEntity<Object> updateSoalWithUpload(String uuid, String namaSoal, String durasi, String jawaban, String deskripsi,
-			MultipartFile file, String directory, SOALTYPE type) {
+			MultipartFile file, MultipartFile[] images, String directory, SOALTYPE type, String jenis) {
 		BaseResponse response = new BaseResponse();
 		
 		if (SOALTYPE.PILIHANGANDA.equals(type)) {
@@ -389,10 +458,54 @@ public class SoalService {
 				path = path + "/" + file.getOriginalFilename();				
 			}
 
+			List<String> uuidsSoal = new ArrayList<>();
 			if (SOALTYPE.PILIHANGANDA.equals(type)) {
-				updatePilihanGanda(uuid, namaSoal, durasi, jawaban, deskripsi, file, path);
+				String uuidSoal = updatePilihanGanda(uuid, namaSoal, durasi, jawaban, deskripsi, file, path, jenis);
+				uuidsSoal.add(uuidSoal);
 			} else if (SOALTYPE.ESSAY.equals(type)) {
-				updateEssay(uuid, namaSoal, durasi, jawaban, deskripsi, file, path);
+				String uuidSoal = updateEssay(uuid, namaSoal, durasi, jawaban, deskripsi, file, path, jenis);
+				uuidsSoal.add(uuidSoal);
+			}
+			
+			if(images != null && images.length > 0) {
+				soalAssetImageRepository.deleteByUuidSoal(uuid);
+				IntStream.range(0, images.length).forEach(index -> {
+					MultipartFile imageFile = images[index];
+
+					String uploadImagePath = "";
+					try {
+						Resource resource = resourceLoader.getResource("classpath:/static"+directoryAssetImage);
+						File file2 = resource.getFile();
+						uploadImagePath = file2.getAbsolutePath();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						
+					}
+					File uploadImageDir = new File(uploadImagePath);
+					if (!uploadImageDir.exists()) {
+						uploadImageDir.mkdir();
+					}
+					
+					String uuidSoal = uuidsSoal.isEmpty() ? null : uuidsSoal.get(0);
+					// Save the file to the soal folder
+					File destImageFile = new File(uploadImageDir.getAbsolutePath() + File.separator + uuidSoal+"_"+imageFile.getOriginalFilename());
+					try {
+						imageFile.transferTo(destImageFile);
+						String pathImage = directoryAssetImage;
+						pathImage = pathImage + "/" + uuidSoal+"_"+imageFile.getOriginalFilename();
+						SoalAssetImage soalAssetImage = new SoalAssetImage();
+						soalAssetImage.setSoalType(type.toString());
+						soalAssetImage.setUuidSoal(uuidSoal);
+						soalAssetImage.setFilePath(pathImage);
+						
+						soalAssetImageRepository.save(soalAssetImage);
+					}catch (Exception e) {
+						e.printStackTrace();
+					}	
+					
+				});
+				
 			}
 
 			response.setMessage(BaseResponse.SUCCESS);
@@ -401,6 +514,54 @@ public class SoalService {
 			response.setMessage(e.getMessage());
 			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 		}
+	}
+	
+	@Transactional(readOnly = false)
+	public ResponseEntity<Object> uploadImagePreview(String username, MultipartFile[] images) {
+		BaseResponse response = new BaseResponse();
+		UUID uuid = UUID.randomUUID();
+        LocalDate currentDate = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String formattedDate = currentDate.format(formatter);
+        
+		List<String> pathImages = new ArrayList<>();
+		if(images != null && images.length > 0) {
+			
+			IntStream.range(0, images.length).forEach(index -> {
+				MultipartFile imageFile = images[index];
+
+				String uploadImagePath = "";
+				try {
+					Resource resource = resourceLoader.getResource("classpath:/static"+directoryPreviewImage);
+					File file2 = resource.getFile();
+					uploadImagePath = file2.getAbsolutePath();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					
+				}
+				File uploadImageDir = new File(uploadImagePath);
+				if (!uploadImageDir.exists()) {
+					uploadImageDir.mkdir();
+				}
+				String uuidText = uuid.toString();
+				// Save the file to the soal folder
+				File destImageFile = new File(uploadImageDir.getAbsolutePath() + File.separator + formattedDate+"_"+uuidText+"_"+imageFile.getOriginalFilename());
+				try {
+					imageFile.transferTo(destImageFile);
+					String pathImage = directoryPreviewImage;
+					pathImage = pathImage + "/" + formattedDate+"_"+uuidText+"_"+imageFile.getOriginalFilename();
+
+					pathImages.add(pathImage);
+				}catch (Exception e) {
+					e.printStackTrace();
+				}					
+			});
+			
+		}
+		response.setData(pathImages);
+		response.setMessage(BaseResponse.SUCCESS);
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 }

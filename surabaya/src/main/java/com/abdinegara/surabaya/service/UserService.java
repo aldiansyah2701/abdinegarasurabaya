@@ -91,6 +91,7 @@ public class UserService {
 		user.setPasswordData(decryptEncrypt.setSensitiveData(data.getPassword()));
 		user.setCreatedDate(new Date());
 		user.setActive(true);
+		user.setUserType(data.getType().toString());
 		user = userRepository.save(user);
 
 		for (String roleName : data.getRoles()) {
@@ -108,6 +109,7 @@ public class UserService {
 			siswa.setHandphone(data.getSiswa().getHandphone());
 			siswa.setName(data.getSiswa().getName());
 			siswa.setTitle(data.getSiswa().getTitle());
+			siswa.setUserUuid(user.getUuid());
 			siswaRepository.save(siswa);
 		}
 		response.setMessage(BaseResponse.SUCCESS);
@@ -167,6 +169,12 @@ public class UserService {
 		log.info("user : {}. with : {}", data.getName(), passwrod);
 
 		return new ResponseEntity<>(resp, HttpStatus.OK);
+	}
+	
+	public ResponseEntity<Object> getAllUserByType(TYPE type) {
+
+		List<String> users = userRepository.findByUserType(type.toString());
+		return new ResponseEntity<>(users, HttpStatus.OK);
 	}
 
 	@Transactional(readOnly = false)

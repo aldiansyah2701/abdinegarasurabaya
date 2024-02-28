@@ -18,9 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.abdinegara.surabaya.message.RequestLogin;
 import com.abdinegara.surabaya.message.RequestRegisterUser;
 import com.abdinegara.surabaya.message.RequestUpdateUser;
+import com.abdinegara.surabaya.message.RequestRegisterUser.TYPE;
 import com.abdinegara.surabaya.service.UserService;
 
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin
 @RestController
 @RequestMapping("/api/v1/user")
 public class UserController {
@@ -60,6 +61,12 @@ public class UserController {
 	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SUPERVISOR')")
 	public ResponseEntity<Object> getUser(@PathVariable("name") String name) {
 		return userService.getUser(name);
+	}
+	
+	@GetMapping(value = "/get-all-user/{type}")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SUPERVISOR')")
+	public ResponseEntity<Object> getAllUserByType(@PathVariable("type") TYPE type) {
+		return userService.getAllUserByType(type);
 	}
 
 	@DeleteMapping(value = "/delete-user/{name}")

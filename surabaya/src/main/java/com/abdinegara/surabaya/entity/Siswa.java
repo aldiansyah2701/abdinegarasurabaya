@@ -48,5 +48,8 @@ private static final long serialVersionUID = 4211854570169058068L;
 	
 	@Transient
 	private List<ResponsePembelianSoal> pembelianSoals;
+	
+	@Column(name = "user_uuid")
+	private String userUuid;
 
 }

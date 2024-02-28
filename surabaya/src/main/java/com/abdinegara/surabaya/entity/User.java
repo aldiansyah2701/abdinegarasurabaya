@@ -38,5 +38,8 @@ public class User extends BaseEntity implements Serializable{
 	
 	@Column
 	private String passwordData;
+	
+	@Column(name= "user_type")
+	private String userType;
 
 }

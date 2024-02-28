@@ -1,5 +1,9 @@
 package com.abdinegara.surabaya.controller.soal;
 
+import java.security.Principal;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
@@ -23,7 +27,7 @@ import com.abdinegara.surabaya.message.RequestQuote;
 import com.abdinegara.surabaya.service.SoalService;
 import com.abdinegara.surabaya.service.SoalService.SOALTYPE;
 
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin
 @RestController
 @RequestMapping("/api/v1/soal")
 public class SoalController {
@@ -54,8 +58,10 @@ public class SoalController {
 			@RequestParam("durasi") String durasi,
 			@RequestParam("jawaban") String jawaban,
 			@RequestParam("deskripsi") String deskripsi,
-			@RequestParam(name = "file", required = true) MultipartFile files) {
-		return soalService.createSoalWithUpload(namaSoal, durasi, jawaban, deskripsi, files, directoryPilihanGanda, SOALTYPE.PILIHANGANDA);
+			@RequestParam("jenis") String jenis,
+			@RequestParam(name = "file", required = true) MultipartFile files,
+			@RequestParam(name = "image", required = false) MultipartFile[] images) {
+		return soalService.createSoalWithUpload(namaSoal, durasi, jawaban, deskripsi, files, images, directoryPilihanGanda, SOALTYPE.PILIHANGANDA, jenis);
 	}
 	
 	@PostMapping(path = "/create/essay", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE } )
@@ -65,10 +71,21 @@ public class SoalController {
 			@RequestParam("durasi") String durasi,
 			@RequestParam("jawaban") String jawaban,
 			@RequestParam("deskripsi") String deskripsi,
-			@RequestParam(name = "file", required = true) MultipartFile files) {
-		return soalService.createSoalWithUpload(namaSoal, durasi, jawaban, deskripsi, files, directoryEssay, SOALTYPE.ESSAY);
+			@RequestParam("jenis") String jenis,
+			@RequestParam(name = "file", required = true) MultipartFile files,
+			@RequestParam(name = "image", required = false) MultipartFile[] images) {
+		return soalService.createSoalWithUpload(namaSoal, durasi, jawaban, deskripsi, files, images, directoryEssay, SOALTYPE.ESSAY, jenis);
 	}
 
+	@PostMapping(path = "/upload/image", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE } )
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> uploadImage(
+			@RequestParam(name = "image", required = false) MultipartFile[] images,
+			HttpServletRequest request) {
+		Principal user = request.getUserPrincipal();
+
+		return soalService.uploadImagePreview(user.getName(), images);
+	}
 	
 	@PostMapping(path = "/create/pauli", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
@@ -84,8 +101,10 @@ public class SoalController {
 			@RequestParam("durasi") String durasi,
 			@RequestParam("jawaban") String jawaban,
 			@RequestParam("deskripsi") String deskripsi,
-			@RequestParam(name = "file", required = false) MultipartFile files) {
-		return soalService.updateSoalWithUpload(uuid, namaSoal, durasi, jawaban, deskripsi, files, directoryPilihanGanda, SOALTYPE.PILIHANGANDA);
+			@RequestParam("jenis") String jenis,
+			@RequestParam(name = "file", required = false) MultipartFile files,
+			@RequestParam(name = "image", required = false) MultipartFile[] images) {
+		return soalService.updateSoalWithUpload(uuid, namaSoal, durasi, jawaban, deskripsi, files, images, directoryPilihanGanda, SOALTYPE.PILIHANGANDA, jenis);
 	}
 	
 	@PostMapping(path = "/update/essay", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE } )
@@ -96,8 +115,10 @@ public class SoalController {
 			@RequestParam("durasi") String durasi,
 			@RequestParam("jawaban") String jawaban,
 			@RequestParam("deskripsi") String deskripsi,
-			@RequestParam(name = "file", required = false) MultipartFile files) {
-		return soalService.updateSoalWithUpload(uuid, namaSoal, durasi, jawaban, deskripsi, files, directoryEssay, SOALTYPE.ESSAY);
+			@RequestParam("jenis") String jenis,
+			@RequestParam(name = "file", required = false) MultipartFile files,
+			@RequestParam(name = "image", required = false) MultipartFile[] images) {
+		return soalService.updateSoalWithUpload(uuid, namaSoal, durasi, jawaban, deskripsi, files, images, directoryEssay, SOALTYPE.ESSAY, jenis);
 	}
 
 	

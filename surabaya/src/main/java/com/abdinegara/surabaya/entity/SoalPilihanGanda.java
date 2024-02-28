@@ -1,10 +1,13 @@
 package com.abdinegara.surabaya.entity;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.GenericGenerator;
 
@@ -37,5 +40,11 @@ public class SoalPilihanGanda extends BaseEntity{
 	
 	@Column(name = "file_path")
 	private String filePath;
+	
+	@Column(name = "jenis")
+	private String jenis;
+	
+	@Transient
+	private List<SoalAssetImage> assetImage;
 
 }

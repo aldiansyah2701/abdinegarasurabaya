@@ -11,11 +11,12 @@ import org.hibernate.annotations.GenericGenerator;
 import lombok.Getter;
 import lombok.Setter;
 
+
 @Setter
 @Getter
-@Entity(name= "soal_pauli")
-@Table(name= "soal_pauli")
-public class SoalPauli extends BaseEntity{
+@Entity(name= "soal_asset_image")
+@Table(name= "soal_asset_image")
+public class SoalAssetImage {
 	
 	@Id
     @GeneratedValue(generator = "uuid")
@@ -23,24 +24,13 @@ public class SoalPauli extends BaseEntity{
             strategy = "org.hibernate.id.UUIDGenerator")
     private String uuid;
 	
-	@Column(name = "nama_soal")
-	private String namaSoal;
+	@Column(name = "uuid_soal")
+	private String uuidSoal;
 	
-	@Column(name = "durasi")
-	private String durasi;
+	@Column(name = "file_path")
+	private String filePath;
 	
-	@Column(name = "soal")
-	private String soal;
-	
-	@Column(name = "jawaban")
-	private String jawaban;
-	
-	@Column(name = "deskripsi")
-	private String deskripsi;
-	
-	@Column(name = "jenis")
-	private String jenis;
-	
-	
+	@Column(name = "soal_type")
+	private String soalType;
 
 }
