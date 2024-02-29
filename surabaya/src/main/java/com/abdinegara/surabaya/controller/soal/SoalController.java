@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.abdinegara.surabaya.message.RequestCreateSoalPauli;
+import com.abdinegara.surabaya.message.RequestCreateUjian;
 import com.abdinegara.surabaya.message.RequestLogin;
 import com.abdinegara.surabaya.message.RequestQuote;
 import com.abdinegara.surabaya.service.SoalService;
@@ -100,10 +101,30 @@ public class SoalController {
 		return soalService.uploadPembelajaranVideo(namaVideo, deskripsi, jenis, video);
 	}
 	
+	@PostMapping(path = "/upload/update/video", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE } )
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> uploadEditVideo(
+			@RequestParam("namaVideo") String namaVideo,
+			@RequestParam("deskripsi") String deskripsi,
+			@RequestParam("jenis") String jenis,
+			@RequestParam("uuid") String uuid,
+			@RequestParam(name = "video", required = false) MultipartFile video,
+			HttpServletRequest request) {
+		Principal user = request.getUserPrincipal();
+
+		return soalService.uploadUpdatePembelajaranVideo(uuid, namaVideo, deskripsi, jenis, video);
+	}
+	
 	@GetMapping(value = "/list/video")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<Object> getListVideo(Pageable pageable) {
 		return soalService.getVideos(pageable);
+	}
+	
+	@DeleteMapping(value = "/delete/video/{uuid}")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> deleteVideo(@PathVariable("uuid") String uuid) {
+		return soalService.deleteVideo(uuid);
 	}
 	
 	@PostMapping(path = "/create/pauli", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -151,8 +172,14 @@ public class SoalController {
 	
 	@GetMapping(value = "/list/{type}")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
-	public ResponseEntity<Object> getListSiswa(@PathVariable("type") SOALTYPE type, Pageable pageable) {
+	public ResponseEntity<Object> getListSoal(@PathVariable("type") SOALTYPE type, Pageable pageable) {
 		return soalService.getSoal(type, pageable);
+	}
+	
+	@GetMapping(value = "/download")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> downloadSoal(@RequestParam("path") String path) {
+		return soalService.downloadSoal(path);
 	}
 	
 	@GetMapping(value = "/detail/{type}/{uuid}")
@@ -163,7 +190,38 @@ public class SoalController {
 	
 	@DeleteMapping(value = "/delete/{type}/{uuid}")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
-	public ResponseEntity<Object> deleteUser(@PathVariable("type") SOALTYPE type, @PathVariable("uuid") String uuid) {
+	public ResponseEntity<Object> deleteSoal(@PathVariable("type") SOALTYPE type, @PathVariable("uuid") String uuid) {
 		return soalService.deleteSoal(type, uuid);
 	}
+	
+	@PostMapping(path = "/create/ujian", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> createUjian(@RequestBody RequestCreateUjian request) {
+		return soalService.createUjian(request);
+	}
+	
+	@GetMapping(value = "/list/ujian")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> getListUjian(Pageable pageable) {
+		return soalService.getListUjian(pageable);
+	}
+	
+	@GetMapping(value = "/detail/ujian/{uuid}")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> getDetailUjian(@PathVariable("uuid") String uuid) {
+		return soalService.getDetailUjian(uuid);
+	}
+	
+	@DeleteMapping(value = "/delete/ujian/{uuid}")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> deleteUjian(@PathVariable("uuid") String uuid) {
+		return soalService.deleteUjian(uuid);
+	}
+	
+	@PostMapping(path = "/update/ujian/{uuid}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> createUjian(@RequestBody RequestCreateUjian request, @PathVariable("uuid") String uuid) {
+		return soalService.updateUjian(request, uuid);
+	}
+	
 }

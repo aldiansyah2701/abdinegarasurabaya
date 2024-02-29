@@ -7,12 +7,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import com.abdinegara.surabaya.entity.PembelajaranVideo;
+import com.abdinegara.surabaya.entity.Ujian;
 
 @Repository
-public interface PembelajaranVideoRepository extends CrudRepository<PembelajaranVideo, String>{
-	
-	Page<PembelajaranVideo> findAll(Pageable pageable);
-	Optional<PembelajaranVideo> findByNamaVideo(String namaVideo);
+public interface UjianRepository extends CrudRepository<Ujian, String>{
 
+	Page<Ujian> findAll(Pageable pageable);
+	Optional<Ujian> findByNamaUjian(String namaUjian);
 }
