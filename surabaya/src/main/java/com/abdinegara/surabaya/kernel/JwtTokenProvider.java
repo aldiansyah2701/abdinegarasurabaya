@@ -44,6 +44,9 @@ public class JwtTokenProvider {
 	
 	@Autowired
 	private RoleRepository roleRepository;
+	
+	@Value("${directory.base.path}")
+	private String directoryBasePath;
 
 	@PostConstruct
 	protected void init() {
@@ -74,6 +77,8 @@ public class JwtTokenProvider {
 		response.setRoles(Arrays.asList(data.getRoles().split(";")));
 		response.setUsername(username);
 		response.setUuid(data.getUuid());
+		response.setBasePathFile(directoryBasePath);
+		
 		return response;
 	}
 	

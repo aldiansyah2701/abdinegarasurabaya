@@ -99,6 +99,9 @@ public class SoalService {
 	@Value("${directory.soal.video}")
 	private String directoryVideo;
 	
+	@Value("${directory.base.path}")
+	private String directoryBasePath;
+
 
 	private static final String UPLOAD_DIR = "C:\\Users\\Dell3420\\Documents\\abdinegaraexel";
 
@@ -177,7 +180,9 @@ public class SoalService {
 		try {
 			Resource resource = resourceLoader.getResource("classpath:/static"+directory);
 			File file2 = resource.getFile();
-			uploadPath = file2.getAbsolutePath();
+//			uploadPath = file2.getAbsolutePath();
+			uploadPath = (directoryBasePath == "" || directoryBasePath.isEmpty()) ? file2.getAbsolutePath()
+					: (directoryBasePath + directory);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -222,7 +227,9 @@ public class SoalService {
 						try {
 							Resource resource = resourceLoader.getResource("classpath:/static"+directoryAssetImage);
 							File file2 = resource.getFile();
-							uploadImagePath = file2.getAbsolutePath();
+//							uploadImagePath = file2.getAbsolutePath();
+							uploadImagePath = (directoryBasePath == "" || directoryBasePath.isEmpty()) ? file2.getAbsolutePath()
+									: (directoryBasePath + directoryAssetImage);
 						} catch (IOException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -475,7 +482,9 @@ public class SoalService {
 		try {
 			Resource resource = resourceLoader.getResource("classpath:/static"+directory);
 			File file2 = resource.getFile();
-			uploadPath = file2.getAbsolutePath();
+//			uploadPath = file2.getAbsolutePath();
+			uploadPath = (directoryBasePath == "" || directoryBasePath.isEmpty()) ? file2.getAbsolutePath()
+					: (directoryBasePath + directory);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -518,7 +527,9 @@ public class SoalService {
 					try {
 						Resource resource = resourceLoader.getResource("classpath:/static"+directoryAssetImage);
 						File file2 = resource.getFile();
-						uploadImagePath = file2.getAbsolutePath();
+//						uploadImagePath = file2.getAbsolutePath();
+						uploadImagePath = (directoryBasePath == "" || directoryBasePath.isEmpty()) ? file2.getAbsolutePath()
+								: (directoryBasePath + directoryAssetImage);
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -573,15 +584,22 @@ public class SoalService {
 				MultipartFile imageFile = images[index];
 
 				String uploadImagePath = "";
+//				if(directoryBasePath == "" || directoryBasePath.isEmpty()) {
 				try {
-					Resource resource = resourceLoader.getResource("classpath:/static"+directoryPreviewImage);
+					Resource resource = resourceLoader.getResource("classpath:/static" + directoryPreviewImage);
 					File file2 = resource.getFile();
-					uploadImagePath = file2.getAbsolutePath();
+					uploadImagePath = (directoryBasePath == "" || directoryBasePath.isEmpty()) ? file2.getAbsolutePath()
+							: (directoryBasePath + directoryPreviewImage);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-					
+
 				}
+					
+//				} else {
+//					uploadImagePath = directoryBasePath+directoryPreviewImage;
+//				}
+				
 				File uploadImageDir = new File(uploadImagePath);
 				if (!uploadImageDir.exists()) {
 					uploadImageDir.mkdir();
@@ -621,7 +639,9 @@ public class SoalService {
 		try {
 			Resource resource = resourceLoader.getResource("classpath:/static" + directoryVideo);
 			File file2 = resource.getFile();
-			uploadVideoPath = file2.getAbsolutePath();
+//			uploadVideoPath = file2.getAbsolutePath();
+			uploadVideoPath = (directoryBasePath == "" || directoryBasePath.isEmpty()) ? file2.getAbsolutePath()
+					: (directoryBasePath + directoryVideo);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -693,7 +713,9 @@ public class SoalService {
 			try {
 				Resource resource = resourceLoader.getResource("classpath:/static" + directoryVideo);
 				File file2 = resource.getFile();
-				uploadVideoPath = file2.getAbsolutePath();
+//				uploadVideoPath = file2.getAbsolutePath();
+				uploadVideoPath = (directoryBasePath == "" || directoryBasePath.isEmpty()) ? file2.getAbsolutePath()
+						: (directoryBasePath + directoryVideo);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -795,7 +817,11 @@ public class SoalService {
 			
 			try {
 				Resource resource = resourceLoader.getResource("classpath:/static"+path);
-				File file = resource.getFile();
+//				File file = resource.getFile();
+				
+				File file  = (directoryBasePath == "" || directoryBasePath.isEmpty()) ? resource.getFile()
+						: ( new File(directoryBasePath + path));
+				
 				InputStream inputStream = new FileInputStream(file);
 		        
 		        // Wrap the FileInputStream with InputStreamResource

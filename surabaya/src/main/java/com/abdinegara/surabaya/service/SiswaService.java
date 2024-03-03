@@ -58,6 +58,9 @@ public class SiswaService {
 	@Autowired
 	private ResourceLoader resourceLoader;
 	
+	@Value("${directory.base.path}")
+	private String directoryBasePath;
+	
 	@Transactional(readOnly = false)
 	public ResponseEntity<Object> createQuote(String type, RequestQuote request) {
 		BaseResponse response = new BaseResponse();
@@ -112,11 +115,15 @@ public class SiswaService {
 			try {
 				Resource resource = resourceLoader.getResource("classpath:/static"+directoryGambar);
 				File file2 = resource.getFile();
-				uploadGambarPath = file2.getAbsolutePath();
+//				uploadGambarPath = file2.getAbsolutePath();
+				uploadGambarPath = (directoryBasePath == "" || directoryBasePath.isEmpty()) ? file2.getAbsolutePath()
+						: (directoryBasePath + directoryGambar);
 				
 				Resource resourceVideo = resourceLoader.getResource("classpath:/static"+directoryVideo);
 				File file3 = resourceVideo.getFile();
-				uploadVideoPath = file3.getAbsolutePath();
+//				uploadVideoPath = file3.getAbsolutePath();
+				uploadVideoPath = (directoryBasePath == "" || directoryBasePath.isEmpty()) ? file3.getAbsolutePath()
+						: (directoryBasePath + directoryVideo);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

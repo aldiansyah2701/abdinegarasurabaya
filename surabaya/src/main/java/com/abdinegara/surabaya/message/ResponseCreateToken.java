@@ -13,5 +13,6 @@ public class ResponseCreateToken extends BaseResponse {
 	private String uuid;
 	private List<String> roles;
 	private String jwtToken;
+	private String basePathFile;
 
 }
