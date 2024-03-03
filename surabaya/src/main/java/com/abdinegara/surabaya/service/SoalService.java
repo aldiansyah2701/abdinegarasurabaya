@@ -472,6 +472,16 @@ public class SoalService {
 		}
 		
 		String uploadPath = "";
+		try {
+			Resource resource = resourceLoader.getResource("classpath:/static"+directory);
+			File file2 = resource.getFile();
+			uploadPath = file2.getAbsolutePath();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			response.setMessage(e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
 		
 		try {
 			// Create the uploads directory if it doesn't exist
@@ -736,6 +746,15 @@ public class SoalService {
 		BaseResponse response = new BaseResponse();
 		response.setMessage("Data found successfully");	
 		Page<PembelajaranVideo> data = pembelajaranVideoRepository.findAll(pageable);
+		response.setData(data);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	
+	}
+	
+	public ResponseEntity<Object> getVideo(String uuid) {
+		BaseResponse response = new BaseResponse();
+		response.setMessage("Data found successfully");	
+		Optional<PembelajaranVideo> data = pembelajaranVideoRepository.findById(uuid);
 		response.setData(data);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	

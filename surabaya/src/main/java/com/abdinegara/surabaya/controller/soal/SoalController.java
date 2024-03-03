@@ -121,6 +121,12 @@ public class SoalController {
 		return soalService.getVideos(pageable);
 	}
 	
+	@GetMapping(value = "/detail/video/{uuid}")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> getDetailVideo(@PathVariable("uuid") String uuid) {
+		return soalService.getVideo(uuid);
+	}
+	
 	@DeleteMapping(value = "/delete/video/{uuid}")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<Object> deleteVideo(@PathVariable("uuid") String uuid) {
