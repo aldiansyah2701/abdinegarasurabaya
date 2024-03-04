@@ -46,7 +46,7 @@ public class PembelajaranVideo extends BaseEntity{
 	@Column(name = "jenis")
 	private String jenis;
 	
-	@JsonIgnore
+//	@JsonIgnore
 	@Getter
 	@Setter
 	@Column(name = "file_path")
