@@ -158,7 +158,7 @@ public class SoalService {
 
 	@Transactional(readOnly = false)
 	public ResponseEntity<Object> createSoalWithUpload(String namaSoal, String durasi, String jawaban, String deskripsi,
-			MultipartFile file, MultipartFile[] images, String directory, SOALTYPE type, String jenis) {
+			MultipartFile file, MultipartFile[] images, String directory, SOALTYPE type, String jenis, Boolean isCanRevisi) {
 		BaseResponse response = new BaseResponse();
 		
 		if (SOALTYPE.PILIHANGANDA.equals(type)) {
@@ -211,7 +211,7 @@ public class SoalService {
 				
 				List<String> uuidsSoal = new ArrayList<>();
 				if (SOALTYPE.PILIHANGANDA.equals(type)) {
-					String uuidSoal = updatePilihanGanda("", namaSoal, durasi, jawaban, deskripsi, file, path, jenis);
+					String uuidSoal = updatePilihanGanda("", namaSoal, durasi, jawaban, deskripsi, file, path, jenis, isCanRevisi);
 					uuidsSoal.add(uuidSoal);
 				} else if (SOALTYPE.ESSAY.equals(type)) {
 					String uuidSoal = updateEssay("", namaSoal, durasi, jawaban, deskripsi, file, path, jenis);
@@ -299,7 +299,7 @@ public class SoalService {
 	}
 
 	private String updatePilihanGanda(String uuid, String namaSoal, String durasi, String jawaban, String deskripsi,
-			MultipartFile file, String path, String jenis) {
+			MultipartFile file, String path, String jenis, Boolean isCanRevisi) {
 		SoalPilihanGanda soal = new SoalPilihanGanda();
 		Optional<SoalPilihanGanda> soalExist = soalPilihanGandaRepository.findById(uuid);
 		if (soalExist.isPresent()) {
@@ -311,6 +311,8 @@ public class SoalService {
 			soal.setDurasi(durasi == null ? soal.getDurasi() : durasi);
 			soal.setJawaban(jawaban == null ? soal.getJawaban() : jawaban);
 			soal.setJenis(jenis == null ? soal.getJenis(): jenis);
+			soal.setCanRevisi(isCanRevisi == null? soal.isCanRevisi(): isCanRevisi);
+//			soal.(isCanRevisi == false ? soal.isCanRevisi(): isCanRevisi);
 
 		} else {
 
@@ -321,6 +323,7 @@ public class SoalService {
 			soal.setDurasi(durasi);
 			soal.setJawaban(jawaban);
 			soal.setJenis(jenis);
+			soal.setCanRevisi(isCanRevisi == null? false: isCanRevisi);
 		}
 
 		soalPilihanGandaRepository.save(soal);
@@ -461,7 +464,7 @@ public class SoalService {
 	
 	@Transactional(readOnly = false)
 	public ResponseEntity<Object> updateSoalWithUpload(String uuid, String namaSoal, String durasi, String jawaban, String deskripsi,
-			MultipartFile file, MultipartFile[] images, String directory, SOALTYPE type, String jenis) {
+			MultipartFile file, MultipartFile[] images, String directory, SOALTYPE type, String jenis, boolean isCanRevisi) {
 		BaseResponse response = new BaseResponse();
 		
 		if (SOALTYPE.PILIHANGANDA.equals(type)) {
@@ -511,7 +514,7 @@ public class SoalService {
 
 			List<String> uuidsSoal = new ArrayList<>();
 			if (SOALTYPE.PILIHANGANDA.equals(type)) {
-				String uuidSoal = updatePilihanGanda(uuid, namaSoal, durasi, jawaban, deskripsi, file, path, jenis);
+				String uuidSoal = updatePilihanGanda(uuid, namaSoal, durasi, jawaban, deskripsi, file, path, jenis, isCanRevisi);
 				uuidsSoal.add(uuidSoal);
 			} else if (SOALTYPE.ESSAY.equals(type)) {
 				String uuidSoal = updateEssay(uuid, namaSoal, durasi, jawaban, deskripsi, file, path, jenis);

@@ -43,6 +43,9 @@ public class SoalPilihanGanda extends BaseEntity{
 	
 	@Column(name = "jenis")
 	private String jenis;
+
+	@Column(name= "is_can_revisi")
+	private boolean isCanRevisi = false;
 	
 	@Transient
 	private List<SoalAssetImage> assetImage;
