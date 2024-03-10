@@ -78,6 +78,26 @@ public class SoalController {
 			@RequestParam(name = "image", required = false) MultipartFile[] images) {
 		return soalService.createSoalWithUpload(namaSoal, durasi, jawaban, deskripsi, files, images, directoryEssay, SOALTYPE.ESSAY, jenis, false);
 	}
+	
+	@PostMapping(path = "/create/TKD", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE } )
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> createSoalTkd(
+			@RequestParam("namaSoal") String namaSoal,
+			@RequestParam("durasi") String durasi,
+			@RequestParam("deskripsi") String deskripsi,
+			@RequestParam("jenis") String jenis,
+			@RequestParam("jawaban_twk") String jawabanTwk,
+			@RequestParam(name = "file_twk", required = true) MultipartFile filesTwk,
+			@RequestParam(name = "image_twk", required = false) MultipartFile[] imagesTwk,
+			@RequestParam("jawaban_tiu") String jawabanTiu,
+			@RequestParam(name = "file_tiu", required = true) MultipartFile filesTiu,
+			@RequestParam(name = "image_tiu", required = false) MultipartFile[] imagesTiu,
+			@RequestParam("jawaban_tkp") String jawabanTkp,
+			@RequestParam(name = "file_tkp", required = true) MultipartFile filesTkp,
+			@RequestParam(name = "image_tkp", required = false) MultipartFile[] imagesTkp) {
+		return soalService.createSoalTKDWithUpload(namaSoal, durasi, deskripsi, jenis, jawabanTwk,
+				filesTwk, imagesTwk, jawabanTiu, filesTiu, imagesTiu, jawabanTkp, filesTkp, imagesTkp);
+	}
 
 	@PostMapping(path = "/upload/image", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE } )
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
