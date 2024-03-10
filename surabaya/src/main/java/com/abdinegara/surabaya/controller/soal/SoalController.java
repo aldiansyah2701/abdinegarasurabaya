@@ -198,6 +198,27 @@ public class SoalController {
 		return soalService.createSoalPauli(uuid, request);
 	}
 	
+	@PostMapping(path = "/update/TKD", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE } )
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> updateSoalTkd(
+			@RequestParam("uuid") String uuid,
+			@RequestParam("namaSoal") String namaSoal,
+			@RequestParam("durasi") String durasi,
+			@RequestParam("deskripsi") String deskripsi,
+			@RequestParam("jenis") String jenis,
+			@RequestParam("jawaban_twk") String jawabanTwk,
+			@RequestParam(name = "file_twk", required = false) MultipartFile filesTwk,
+			@RequestParam(name = "image_twk", required = false) MultipartFile[] imagesTwk,
+			@RequestParam("jawaban_tiu") String jawabanTiu,
+			@RequestParam(name = "file_tiu", required = false) MultipartFile filesTiu,
+			@RequestParam(name = "image_tiu", required = false) MultipartFile[] imagesTiu,
+			@RequestParam("jawaban_tkp") String jawabanTkp,
+			@RequestParam(name = "file_tkp", required = false) MultipartFile filesTkp,
+			@RequestParam(name = "image_tkp", required = false) MultipartFile[] imagesTkp) {
+		return soalService.updateSoalTKDWithUpload(uuid, namaSoal, durasi, deskripsi, jenis, jawabanTwk,
+				filesTwk, imagesTwk, jawabanTiu, filesTiu, imagesTiu, jawabanTkp, filesTkp, imagesTkp);
+	}
+	
 	@GetMapping(value = "/list/{type}")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<Object> getListSoal(@PathVariable("type") SOALTYPE type, Pageable pageable) {

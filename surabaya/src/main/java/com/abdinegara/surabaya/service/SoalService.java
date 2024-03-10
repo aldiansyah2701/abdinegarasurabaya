@@ -816,6 +816,210 @@ public class SoalService {
 	}
 	
 	@Transactional(readOnly = false)
+	public ResponseEntity<Object> updateSoalTKDWithUpload(String uuid, String namaSoal, String durasi,  String deskripsi , String jenis,
+			String jawabanTwk, MultipartFile filesTwk, MultipartFile[] imagesTwk,
+			String jawabanTiu, MultipartFile filesTiu, MultipartFile[] imagesTiu,
+			String jawabanTkp, MultipartFile filesTkp, MultipartFile[] imagesTkp) {
+		BaseResponse response = new BaseResponse();
+		
+		Optional<SoalTKD> soalExist = soalTKDRepository.findById(uuid);
+		if(!soalExist.isPresent()) {
+			response.setMessage("soal tidak tersedia");
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
+
+		
+//		String uploadPath = servletContext.getRealPath("/static"+directory);
+		String uploadPath = "";
+		try {
+			Resource resource = resourceLoader.getResource("classpath:/static"+directoryTkd);
+			File file2 = resource.getFile();
+//			uploadPath = file2.getAbsolutePath();
+			uploadPath = (directoryBasePath == "" || directoryBasePath.isEmpty()) ? file2.getAbsolutePath()
+					: (directoryBasePath + directoryTkd);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			response.setMessage(e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
+
+		try {
+			// Create the uploads directory if it doesn't exist
+			File uploadDir = new File(uploadPath);
+			if (!uploadDir.exists()) {
+				uploadDir.mkdir();
+			}
+
+			 // Save the file to the soal folder
+			String pathTwk = "";
+			if(filesTwk != null) {
+				File destFileTwk = new File(uploadDir.getAbsolutePath() + File.separator + filesTwk.getOriginalFilename());
+				filesTwk.transferTo(destFileTwk);
+				pathTwk = directoryTkd;
+				pathTwk = pathTwk + "/" + filesTwk.getOriginalFilename();
+			}
+			
+			String pathTiu = "";
+			if(filesTwk != null) {
+				File destFileTiu = new File(uploadDir.getAbsolutePath() + File.separator + filesTiu.getOriginalFilename());
+				filesTiu.transferTo(destFileTiu);
+				pathTiu = directoryTkd;
+				pathTiu = pathTiu + "/" + filesTiu.getOriginalFilename();
+			}
+			
+			String pathTkp = "";
+			if(filesTwk != null) {
+				File destFileTkp = new File(uploadDir.getAbsolutePath() + File.separator + filesTkp.getOriginalFilename());
+				filesTkp.transferTo(destFileTkp);
+				pathTkp = directoryTkd;
+				pathTkp = pathTkp + "/" + filesTkp.getOriginalFilename();
+			}
+	        
+	        		
+				List<String> uuidsSoal = new ArrayList<>();
+				String uuidSoal = updateTKD(uuid, namaSoal, durasi, deskripsi, jenis, 
+						filesTwk, pathTwk, jawabanTwk,
+						filesTiu, pathTiu, jawabanTiu,
+						filesTkp, pathTkp, jawabanTkp);
+				uuidsSoal.add(uuidSoal);
+
+				if(imagesTwk != null && imagesTwk.length > 0) {
+					soalAssetImageRepository.deleteByUuidSoalAndSoalType(uuidSoal, "TKD_TWK");
+					IntStream.range(0, imagesTwk.length).forEach(index -> {
+						MultipartFile imageFile = imagesTwk[index];
+						
+						String uploadImagePath = "";
+						try {
+							Resource resource = resourceLoader.getResource("classpath:/static"+directoryAssetImage);
+							File file2 = resource.getFile();
+
+							uploadImagePath = (directoryBasePath == "" || directoryBasePath.isEmpty()) ? file2.getAbsolutePath()
+									: (directoryBasePath + directoryAssetImage);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+							
+						}
+						File uploadImageDir = new File(uploadImagePath);
+						if (!uploadImageDir.exists()) {
+							uploadImageDir.mkdir();
+						}
+						
+						String uuidSoalGet = uuidsSoal.isEmpty() ? null : uuidsSoal.get(0);
+						// Save the file to the soal folder
+						File destImageFile = new File(uploadImageDir.getAbsolutePath() + File.separator + uuidSoalGet+"_"+imageFile.getOriginalFilename());
+						try {
+							imageFile.transferTo(destImageFile);
+							String pathImage = directoryAssetImage;
+							pathImage = pathImage + "/" + uuidSoalGet+"_"+imageFile.getOriginalFilename();
+							SoalAssetImage soalAssetImage = new SoalAssetImage();
+							soalAssetImage.setSoalType("TKD_TWK");
+							soalAssetImage.setUuidSoal(uuidSoalGet);
+							soalAssetImage.setFilePath(pathImage);
+							
+							soalAssetImageRepository.save(soalAssetImage);
+						}catch (Exception e) {
+							e.printStackTrace();
+						}						
+					});
+			
+				}
+				
+				if(imagesTiu != null && imagesTiu.length > 0) {
+					soalAssetImageRepository.deleteByUuidSoalAndSoalType(uuidSoal, "TKD_TIU");
+					IntStream.range(0, imagesTiu.length).forEach(index -> {
+						MultipartFile imageFile = imagesTiu[index];
+						
+						String uploadImagePath = "";
+						try {
+							Resource resource = resourceLoader.getResource("classpath:/static"+directoryAssetImage);
+							File file2 = resource.getFile();
+
+							uploadImagePath = (directoryBasePath == "" || directoryBasePath.isEmpty()) ? file2.getAbsolutePath()
+									: (directoryBasePath + directoryAssetImage);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+							
+						}
+						File uploadImageDir = new File(uploadImagePath);
+						if (!uploadImageDir.exists()) {
+							uploadImageDir.mkdir();
+						}
+						
+						String uuidSoalGet = uuidsSoal.isEmpty() ? null : uuidsSoal.get(0);
+						// Save the file to the soal folder
+						File destImageFile = new File(uploadImageDir.getAbsolutePath() + File.separator + uuidSoalGet+"_"+imageFile.getOriginalFilename());
+						try {
+							imageFile.transferTo(destImageFile);
+							String pathImage = directoryAssetImage;
+							pathImage = pathImage + "/" + uuidSoalGet+"_"+imageFile.getOriginalFilename();
+							SoalAssetImage soalAssetImage = new SoalAssetImage();
+							soalAssetImage.setSoalType("TKD_TIU");
+							soalAssetImage.setUuidSoal(uuidSoalGet);
+							soalAssetImage.setFilePath(pathImage);
+							
+							soalAssetImageRepository.save(soalAssetImage);
+						}catch (Exception e) {
+							e.printStackTrace();
+						}						
+					});
+			
+				}
+				
+				if(imagesTkp != null && imagesTkp.length > 0) {
+					soalAssetImageRepository.deleteByUuidSoalAndSoalType(uuidSoal, "TKD_TKP");
+					IntStream.range(0, imagesTkp.length).forEach(index -> {
+						MultipartFile imageFile = imagesTkp[index];
+						
+						String uploadImagePath = "";
+						try {
+							Resource resource = resourceLoader.getResource("classpath:/static"+directoryAssetImage);
+							File file2 = resource.getFile();
+
+							uploadImagePath = (directoryBasePath == "" || directoryBasePath.isEmpty()) ? file2.getAbsolutePath()
+									: (directoryBasePath + directoryAssetImage);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+							
+						}
+						File uploadImageDir = new File(uploadImagePath);
+						if (!uploadImageDir.exists()) {
+							uploadImageDir.mkdir();
+						}
+						
+						String uuidSoalGet = uuidsSoal.isEmpty() ? null : uuidsSoal.get(0);
+						// Save the file to the soal folder
+						File destImageFile = new File(uploadImageDir.getAbsolutePath() + File.separator + uuidSoalGet+"_"+imageFile.getOriginalFilename());
+						try {
+							imageFile.transferTo(destImageFile);
+							String pathImage = directoryAssetImage;
+							pathImage = pathImage + "/" + uuidSoalGet+"_"+imageFile.getOriginalFilename();
+							SoalAssetImage soalAssetImage = new SoalAssetImage();
+							soalAssetImage.setSoalType("TKD_TKP");
+							soalAssetImage.setUuidSoal(uuidSoalGet);
+							soalAssetImage.setFilePath(pathImage);
+							
+							soalAssetImageRepository.save(soalAssetImage);
+						}catch (Exception e) {
+							e.printStackTrace();
+						}						
+					});
+			
+				}
+
+			response.setMessage(BaseResponse.SUCCESS);
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			response.setMessage(e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
+
+	}
+	
+	@Transactional(readOnly = false)
 	public ResponseEntity<Object> uploadImagePreview(String username, MultipartFile[] images) {
 		BaseResponse response = new BaseResponse();
 		UUID uuid = UUID.randomUUID();
