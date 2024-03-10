@@ -12,6 +12,7 @@ public interface SoalAssetImageRepository extends CrudRepository<SoalAssetImage,
 	
     void deleteByUuidSoal(String uuidSoal);
     List<SoalAssetImage> findByUuidSoal(String uuidSoal);
+    List<SoalAssetImage> findByUuidSoalAndSoalType(String uuidSoal, String soalType);
     void deleteByUuidSoalAndSoalType(String uuidSoal, String soalType);
 
 }

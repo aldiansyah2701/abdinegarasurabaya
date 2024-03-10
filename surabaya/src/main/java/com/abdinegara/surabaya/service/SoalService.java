@@ -115,7 +115,7 @@ public class SoalService {
 	private static final String UPLOAD_DIR = "C:\\Users\\Dell3420\\Documents\\abdinegaraexel";
 
 	public enum SOALTYPE {
-		PILIHANGANDA, ESSAY, PAULI
+		PILIHANGANDA, ESSAY, PAULI, TKD
 	}
 
 	@Transactional(readOnly = false)
@@ -631,6 +631,10 @@ public class SoalService {
 			Page<SoalPauli> data = soalPauliRepository.findAll(pageable);
 			response.setData(data);
 			return new ResponseEntity<>(response, HttpStatus.OK);
+		} else if (SOALTYPE.TKD.equals(type)) {
+			Page<SoalTKD> data = soalTKDRepository.findAll(pageable);
+			response.setData(data);
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
 
 		response.setMessage("Data not found");
@@ -648,7 +652,7 @@ public class SoalService {
 				SoalPilihanGanda dataResp = data.get();
 				dataResp.setAssetImage(assetImages);
 				
-				response.setData(data);
+				response.setData(dataResp);
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
 		} else if (SOALTYPE.ESSAY.equals(type)) {
@@ -657,7 +661,7 @@ public class SoalService {
 				List<SoalAssetImage> assetImages = soalAssetImageRepository.findByUuidSoal(uuid);
 				SoalEssay dataResp = data.get();
 				dataResp.setAssetImage(assetImages);
-				response.setData(data);
+				response.setData(dataResp);
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
 		} else if (SOALTYPE.PAULI.equals(type)) {
@@ -665,6 +669,20 @@ public class SoalService {
 			if (data.isPresent()) {
 
 				response.setData(data);
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+		} else if (SOALTYPE.TKD.equals(type)) {
+			Optional<SoalTKD> data = soalTKDRepository.findById(uuid);
+			if (data.isPresent()) {
+				List<SoalAssetImage> assetImagesTwk = soalAssetImageRepository.findByUuidSoalAndSoalType(uuid, "TKD_TWK");
+				List<SoalAssetImage> assetImagesTiu = soalAssetImageRepository.findByUuidSoalAndSoalType(uuid, "TKD_TIU");
+				List<SoalAssetImage> assetImagesTkp = soalAssetImageRepository.findByUuidSoalAndSoalType(uuid, "TKD_TKP");
+				SoalTKD dataResp = data.get();
+				dataResp.setAssetImageTwk(assetImagesTwk);
+				dataResp.setAssetImageTiu(assetImagesTiu);
+				dataResp.setAssetImageTkp(assetImagesTkp);
+				
+				response.setData(dataResp);
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
 		}
