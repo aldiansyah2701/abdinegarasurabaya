@@ -6,6 +6,7 @@ import com.abdinegara.surabaya.entity.PembelajaranVideo;
 import com.abdinegara.surabaya.entity.SoalEssay;
 import com.abdinegara.surabaya.entity.SoalPauli;
 import com.abdinegara.surabaya.entity.SoalPilihanGanda;
+import com.abdinegara.surabaya.entity.SoalTKD;
 import com.abdinegara.surabaya.entity.Ujian;
 
 import lombok.Getter;
@@ -20,6 +21,6 @@ public class ResponseDetailUjian {
 	private List<SoalEssay> detailEssays;
 	private List<SoalPauli> detailPaulis;
 	private List<PembelajaranVideo> detailVideos;
-	
+	private List<SoalTKD> detailTKDs;
 
 }
