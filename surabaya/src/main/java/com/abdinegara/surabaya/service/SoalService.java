@@ -115,7 +115,7 @@ public class SoalService {
 	private static final String UPLOAD_DIR = "C:\\Users\\Dell3420\\Documents\\abdinegaraexel";
 
 	public enum SOALTYPE {
-		PILIHANGANDA, ESSAY, PAULI, TKD
+		PILIHANGANDA, ESSAY, PAULI, TKD, HURUFHILANG,SYMBOLHILANG,ANGKAHILANG,GANJILGENAP
 	}
 
 	@Transactional(readOnly = false)

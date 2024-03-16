@@ -86,15 +86,15 @@ public class SoalController {
 			@RequestParam("durasi") String durasi,
 			@RequestParam("deskripsi") String deskripsi,
 			@RequestParam("jenis") String jenis,
-			@RequestParam("jawaban_twk") String jawabanTwk,
-			@RequestParam(name = "file_twk", required = true) MultipartFile filesTwk,
-			@RequestParam(name = "image_twk", required = false) MultipartFile[] imagesTwk,
-			@RequestParam("jawaban_tiu") String jawabanTiu,
-			@RequestParam(name = "file_tiu", required = true) MultipartFile filesTiu,
-			@RequestParam(name = "image_tiu", required = false) MultipartFile[] imagesTiu,
-			@RequestParam("jawaban_tkp") String jawabanTkp,
-			@RequestParam(name = "file_tkp", required = true) MultipartFile filesTkp,
-			@RequestParam(name = "image_tkp", required = false) MultipartFile[] imagesTkp) {
+			@RequestParam("jawabanTwk") String jawabanTwk,
+			@RequestParam(name = "fileTwk", required = true) MultipartFile filesTwk,
+			@RequestParam(name = "imagesTwk", required = false) MultipartFile[] imagesTwk,
+			@RequestParam("jawabanTiu") String jawabanTiu,
+			@RequestParam(name = "fileTiu", required = true) MultipartFile filesTiu,
+			@RequestParam(name = "imagesTiu", required = false) MultipartFile[] imagesTiu,
+			@RequestParam("jawabanTkp") String jawabanTkp,
+			@RequestParam(name = "fileTkp", required = true) MultipartFile filesTkp,
+			@RequestParam(name = "imagesTkp", required = false) MultipartFile[] imagesTkp) {
 		return soalService.createSoalTKDWithUpload(namaSoal, durasi, deskripsi, jenis, jawabanTwk,
 				filesTwk, imagesTwk, jawabanTiu, filesTiu, imagesTiu, jawabanTkp, filesTkp, imagesTkp);
 	}
