@@ -18,6 +18,8 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.ServletContext;
 
+import com.abdinegara.surabaya.entity.*;
+import com.abdinegara.surabaya.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
@@ -33,28 +35,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.abdinegara.surabaya.entity.BuatSoal;
-import com.abdinegara.surabaya.entity.PembelajaranVideo;
-import com.abdinegara.surabaya.entity.SoalAssetImage;
-import com.abdinegara.surabaya.entity.SoalEssay;
-import com.abdinegara.surabaya.entity.SoalPauli;
-import com.abdinegara.surabaya.entity.SoalPilihanGanda;
-import com.abdinegara.surabaya.entity.SoalTKD;
-import com.abdinegara.surabaya.entity.Ujian;
-import com.abdinegara.surabaya.entity.UjianAssetSoal;
 import com.abdinegara.surabaya.message.BaseResponse;
 import com.abdinegara.surabaya.message.RequestCreateSoalPauli;
 import com.abdinegara.surabaya.message.RequestCreateUjian;
 import com.abdinegara.surabaya.message.ResponseDetailUjian;
-import com.abdinegara.surabaya.repository.BuatSoalRepository;
-import com.abdinegara.surabaya.repository.PembelajaranVideoRepository;
-import com.abdinegara.surabaya.repository.SoalAssetImageRepository;
-import com.abdinegara.surabaya.repository.SoalEssayRepository;
-import com.abdinegara.surabaya.repository.SoalPauliRepository;
-import com.abdinegara.surabaya.repository.SoalPilihanGandaRepository;
-import com.abdinegara.surabaya.repository.SoalTKDRepository;
-import com.abdinegara.surabaya.repository.UjianAssetSoalRepository;
-import com.abdinegara.surabaya.repository.UjianRepository;
 
 import lombok.extern.slf4j.Slf4j;
 import java.io.FileInputStream;
@@ -93,7 +77,10 @@ public class SoalService {
 	private UjianAssetSoalRepository ujianAssetSoalRepository;
 	
 	@Autowired
-	private SoalTKDRepository soalTKDRepository;	
+	private SoalTKDRepository soalTKDRepository;
+
+	@Autowired
+	private SoalGanjilGenapRepository soalGanjilGenapRepository;
 	
 	@Value("${directory.soal.asset.image}")
 	private String directoryAssetImage;
@@ -115,7 +102,7 @@ public class SoalService {
 	private static final String UPLOAD_DIR = "C:\\Users\\Dell3420\\Documents\\abdinegaraexel";
 
 	public enum SOALTYPE {
-		PILIHANGANDA, ESSAY, PAULI, TKD, HURUFHILANG,SYMBOLHILANG,ANGKAHILANG,GANJILGENAP
+		PILIHANGANDA, ESSAY, PAULI, TKD, HURUFHILANG, SYMBOLHILANG, ANGKAHILANG, GANJILGENAP
 	}
 
 	@Transactional(readOnly = false)
@@ -616,6 +603,49 @@ public class SoalService {
 
 	}
 
+	@Transactional(readOnly = false)
+	public ResponseEntity<Object> createSoalGanjilGenap(String uuid, RequestCreateSoalPauli request) {
+		BaseResponse response = new BaseResponse();
+		Optional<SoalGanjilGenap> soalExist = soalGanjilGenapRepository.findByNamaSoal(request.getNamaSoal());
+		if(soalExist.isPresent() && "".equals(uuid)) {
+			response.setMessage("nama soal sudah tersedia");
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
+
+		Optional<SoalGanjilGenap> soalUpdateExist = soalGanjilGenapRepository.findById(uuid);
+		if(!soalUpdateExist.isPresent() && !"".equals(uuid)) {
+			response.setMessage("soal tidak tersedia");
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
+
+		SoalGanjilGenap soal = new SoalGanjilGenap();
+		if (soalUpdateExist.isPresent()) {
+			soal = soalUpdateExist.get();
+			soal.setUpdateDate(new Date());
+
+			soal.setNamaSoal(request.getNamaSoal() == null ? soal.getNamaSoal() : request.getNamaSoal());
+			soal.setDeskripsi(request.getDeskripsi() == null ? soal.getDeskripsi() : request.getDeskripsi());
+			soal.setDurasi(request.getDurasi() == null ? soal.getDurasi() : request.getDurasi());
+			soal.setJawaban(request.getJawaban() == null ? soal.getJawaban() : request.getJawaban());
+			soal.setSoal(request.getSoal() == null ? soal.getSoal() : request.getSoal());
+			soal.setJenis(request.getJenis() == null ? soal.getJenis() : request.getJenis());
+		} else {
+
+			soal.setCreatedDate(new Date());
+			soal.setNamaSoal(request.getNamaSoal());
+			soal.setDeskripsi(request.getDeskripsi());
+			soal.setDurasi(request.getDurasi());
+			soal.setJawaban(request.getJawaban());
+			soal.setSoal(request.getSoal());
+			soal.setJenis(request.getJenis());
+		}
+
+		soalGanjilGenapRepository.save(soal);
+		response.setMessage(BaseResponse.SUCCESS);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+
+	}
+
 	public ResponseEntity<Object> getSoal(SOALTYPE type, Pageable pageable) {
 		BaseResponse response = new BaseResponse();
 		response.setMessage("Data found successfully");
@@ -633,6 +663,10 @@ public class SoalService {
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} else if (SOALTYPE.TKD.equals(type)) {
 			Page<SoalTKD> data = soalTKDRepository.findAll(pageable);
+			response.setData(data);
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} else if (SOALTYPE.GANJILGENAP.equals(type)) {
+			Page<SoalGanjilGenap> data = soalGanjilGenapRepository.findAll(pageable);
 			response.setData(data);
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
@@ -685,6 +719,13 @@ public class SoalService {
 				response.setData(dataResp);
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
+		} else if (SOALTYPE.GANJILGENAP.equals(type)) {
+			Optional<SoalGanjilGenap> data = soalGanjilGenapRepository.findById(uuid);
+			if (data.isPresent()) {
+
+				response.setData(data);
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
 		}
 
 		response.setMessage("Data not found");
@@ -720,6 +761,13 @@ public class SoalService {
 			Optional<SoalTKD> data = soalTKDRepository.findById(uuid);
 			if (data.isPresent()) {
 				soalTKDRepository.deleteById(uuid);
+				return new ResponseEntity<>(response, HttpStatus.OK);
+
+			}
+		} else if (SOALTYPE.GANJILGENAP.equals(type)) {
+			Optional<SoalGanjilGenap> data = soalGanjilGenapRepository.findById(uuid);
+			if (data.isPresent()) {
+				soalGanjilGenapRepository.deleteById(uuid);
 				return new ResponseEntity<>(response, HttpStatus.OK);
 
 			}

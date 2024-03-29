@@ -99,6 +99,18 @@ public class SoalController {
 				filesTwk, imagesTwk, jawabanTiu, filesTiu, imagesTiu, jawabanTkp, filesTkp, imagesTkp);
 	}
 
+	@PostMapping(path = "/create/pauli", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> createSoalPauli(@RequestBody RequestCreateSoalPauli request) {
+		return soalService.createSoalPauli("", request);
+	}
+
+	@PostMapping(path = "/create/ganjil-genap", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> createSoalGanjilGenap(@RequestBody RequestCreateSoalPauli request) {
+		return soalService.createSoalGanjilGenap("", request);
+	}
+
 	@PostMapping(path = "/upload/image", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE } )
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<Object> uploadImage(
@@ -154,12 +166,6 @@ public class SoalController {
 		return soalService.deleteVideo(uuid);
 	}
 	
-	@PostMapping(path = "/create/pauli", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
-	public ResponseEntity<Object> createSoalPauli(@RequestBody RequestCreateSoalPauli request) {
-		return soalService.createSoalPauli("", request);
-	}
-	
 	@PostMapping(path = "/update/pilihan/ganda", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE } )
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<Object> updateSoalPilihanGanda(
@@ -197,6 +203,14 @@ public class SoalController {
 			@RequestBody RequestCreateSoalPauli request) {
 		return soalService.createSoalPauli(uuid, request);
 	}
+
+	@PostMapping(path = "/update/ganjil-genap", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> updateSoalGanjilGenap(
+			@RequestParam("uuid") String uuid,
+			@RequestBody RequestCreateSoalPauli request) {
+		return soalService.createSoalGanjilGenap(uuid, request);
+	}
 	
 	@PostMapping(path = "/update/TKD", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE } )
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
@@ -206,15 +220,15 @@ public class SoalController {
 			@RequestParam("durasi") String durasi,
 			@RequestParam("deskripsi") String deskripsi,
 			@RequestParam("jenis") String jenis,
-			@RequestParam("jawaban_twk") String jawabanTwk,
-			@RequestParam(name = "file_twk", required = false) MultipartFile filesTwk,
-			@RequestParam(name = "image_twk", required = false) MultipartFile[] imagesTwk,
-			@RequestParam("jawaban_tiu") String jawabanTiu,
-			@RequestParam(name = "file_tiu", required = false) MultipartFile filesTiu,
-			@RequestParam(name = "image_tiu", required = false) MultipartFile[] imagesTiu,
-			@RequestParam("jawaban_tkp") String jawabanTkp,
-			@RequestParam(name = "file_tkp", required = false) MultipartFile filesTkp,
-			@RequestParam(name = "image_tkp", required = false) MultipartFile[] imagesTkp) {
+			@RequestParam("jawabanTwk") String jawabanTwk,
+			@RequestParam(name = "filesTwk", required = false) MultipartFile filesTwk,
+			@RequestParam(name = "imagesTwk", required = false) MultipartFile[] imagesTwk,
+			@RequestParam("jawabanTiu") String jawabanTiu,
+			@RequestParam(name = "filesTiu", required = false) MultipartFile filesTiu,
+			@RequestParam(name = "imagesTiu", required = false) MultipartFile[] imagesTiu,
+			@RequestParam("jawabanTkp") String jawabanTkp,
+			@RequestParam(name = "filesTkp", required = false) MultipartFile filesTkp,
+			@RequestParam(name = "imagesTkp", required = false) MultipartFile[] imagesTkp) {
 		return soalService.updateSoalTKDWithUpload(uuid, namaSoal, durasi, deskripsi, jenis, jawabanTwk,
 				filesTwk, imagesTwk, jawabanTiu, filesTiu, imagesTiu, jawabanTkp, filesTkp, imagesTkp);
 	}
