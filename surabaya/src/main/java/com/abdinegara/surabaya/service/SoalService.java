@@ -19,6 +19,7 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.ServletContext;
 
 import com.abdinegara.surabaya.entity.*;
+import com.abdinegara.surabaya.message.*;
 import com.abdinegara.surabaya.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,11 +35,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import com.abdinegara.surabaya.message.BaseResponse;
-import com.abdinegara.surabaya.message.RequestCreateSoalPauli;
-import com.abdinegara.surabaya.message.RequestCreateUjian;
-import com.abdinegara.surabaya.message.ResponseDetailUjian;
 
 import lombok.extern.slf4j.Slf4j;
 import java.io.FileInputStream;
@@ -81,6 +77,9 @@ public class SoalService {
 
 	@Autowired
 	private SoalGanjilGenapRepository soalGanjilGenapRepository;
+
+	@Autowired
+	private SoalHilangRepository soalHilangRepository;
 	
 	@Value("${directory.soal.asset.image}")
 	private String directoryAssetImage;
@@ -102,7 +101,7 @@ public class SoalService {
 	private static final String UPLOAD_DIR = "C:\\Users\\Dell3420\\Documents\\abdinegaraexel";
 
 	public enum SOALTYPE {
-		PILIHANGANDA, ESSAY, PAULI, TKD, HURUFHILANG, SYMBOLHILANG, ANGKAHILANG, GANJILGENAP
+		PILIHANGANDA, ESSAY, PAULI, TKD, SOALHILANG, GANJILGENAP
 	}
 
 	@Transactional(readOnly = false)
@@ -646,6 +645,51 @@ public class SoalService {
 
 	}
 
+	@Transactional(readOnly = false)
+	public ResponseEntity<Object> createSoalHilang(String uuid, RequestCreateSoalHilang request) {
+		BaseResponse response = new BaseResponse();
+		Optional<SoalHilang> soalExist = soalHilangRepository.findByNamaSoal(request.getNamaSoal());
+		if(soalExist.isPresent() && "".equals(uuid)) {
+			response.setMessage("nama soal sudah tersedia");
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
+
+		Optional<SoalHilang> soalUpdateExist = soalHilangRepository.findById(uuid);
+		if(!soalUpdateExist.isPresent() && !"".equals(uuid)) {
+			response.setMessage("soal tidak tersedia");
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
+
+		SoalHilang soal = new SoalHilang();
+		if (soalUpdateExist.isPresent()) {
+			soal = soalUpdateExist.get();
+			soal.setUpdateDate(new Date());
+
+			soal.setNamaSoal(request.getNamaSoal() == null ? soal.getNamaSoal() : request.getNamaSoal());
+			soal.setDeskripsi(request.getDeskripsi() == null ? soal.getDeskripsi() : request.getDeskripsi());
+			soal.setDurasi(request.getDurasi() == null ? soal.getDurasi() : request.getDurasi());
+			soal.setJawaban(request.getJawaban() == null ? soal.getJawaban() : request.getJawaban());
+			soal.setSoal(request.getSoal() == null ? soal.getSoal() : request.getSoal());
+			soal.setMasterSoal(request.getMasterSoal() == null ? soal.getMasterSoal() : request.getMasterSoal());
+			soal.setJenis(request.getJenis() == null ? soal.getJenis() : request.getJenis());
+		} else {
+
+			soal.setCreatedDate(new Date());
+			soal.setNamaSoal(request.getNamaSoal());
+			soal.setDeskripsi(request.getDeskripsi());
+			soal.setDurasi(request.getDurasi());
+			soal.setJawaban(request.getJawaban());
+			soal.setSoal(request.getSoal());
+			soal.setMasterSoal(request.getMasterSoal());
+			soal.setJenis(request.getJenis());
+		}
+
+		soalHilangRepository.save(soal);
+		response.setMessage(BaseResponse.SUCCESS);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+
+	}
+
 	public ResponseEntity<Object> getSoal(SOALTYPE type, Pageable pageable) {
 		BaseResponse response = new BaseResponse();
 		response.setMessage("Data found successfully");
@@ -667,6 +711,10 @@ public class SoalService {
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} else if (SOALTYPE.GANJILGENAP.equals(type)) {
 			Page<SoalGanjilGenap> data = soalGanjilGenapRepository.findAll(pageable);
+			response.setData(data);
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} else if (SOALTYPE.SOALHILANG.equals(type)) {
+			Page<SoalHilang> data = soalHilangRepository.findAll(pageable);
 			response.setData(data);
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
@@ -721,6 +769,13 @@ public class SoalService {
 			}
 		} else if (SOALTYPE.GANJILGENAP.equals(type)) {
 			Optional<SoalGanjilGenap> data = soalGanjilGenapRepository.findById(uuid);
+			if (data.isPresent()) {
+
+				response.setData(data);
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+		} else if (SOALTYPE.SOALHILANG.equals(type)) {
+			Optional<SoalHilang> data = soalHilangRepository.findById(uuid);
 			if (data.isPresent()) {
 
 				response.setData(data);
@@ -1423,6 +1478,14 @@ public class SoalService {
 				ujianAssetSoalRepository.save(soalUjian);
 			});
 
+			request.getUuidSoalHilang().forEach(data -> {
+				UjianAssetSoal soalUjian = new UjianAssetSoal();
+				soalUjian.setSoalType("SOALHILANG");
+				soalUjian.setUuidSoal(data);
+				soalUjian.setUuidUjian(ujian.getUuid());
+				ujianAssetSoalRepository.save(soalUjian);
+			});
+
 			response.setMessage(BaseResponse.SUCCESS);
 			return new ResponseEntity<>(response, HttpStatus.OK);
 
@@ -1450,6 +1513,7 @@ public class SoalService {
 				 List<SoalPauli> detailPaulis= new ArrayList<SoalPauli>();
 				 List<PembelajaranVideo> detailVideos = new ArrayList<PembelajaranVideo>();
 				 List<SoalTKD> detailTKDs= new ArrayList<SoalTKD>();
+				List<SoalHilang> detailSoalHilangs= new ArrayList<SoalHilang>();
 				
 				List<UjianAssetSoal> soals = ujianAssetSoalRepository.findByUuidUjian(uuid);
 				soals.forEach(soal ->{
@@ -1496,6 +1560,11 @@ public class SoalService {
 							detailTKDs.add(dataResp);
 							
 						}
+					} else if ("SOALHILANG".equals(soal.getSoalType())) {
+						Optional<SoalHilang> data = soalHilangRepository.findById(soal.getUuidSoal());
+						if (data.isPresent()) {
+							detailSoalHilangs.add(data.get());
+						}
 					}
 				});
 				
@@ -1504,6 +1573,7 @@ public class SoalService {
 				responseUjian.setDetailPilihanGandas(detailPilihanGandas);
 				responseUjian.setDetailVideos(detailVideos);
 				responseUjian.setDetailTKDs(detailTKDs);
+				responseUjian.setDetailSoalHilangs(detailSoalHilangs);
 				
 				response.setData(responseUjian);
 				return new ResponseEntity<>(response, HttpStatus.OK);
@@ -1559,7 +1629,6 @@ public class SoalService {
 					UjianAssetSoal soalUjian = new UjianAssetSoal();
 					soalUjian.setSoalType("ESSAY");
 					soalUjian.setUuidSoal(data);
-					soalUjian.setUuidUjian(data);
 					soalUjian.setUuidUjian(ujian.getUuid());
 					ujianAssetSoalRepository.save(soalUjian);
 					
@@ -1572,7 +1641,6 @@ public class SoalService {
 					UjianAssetSoal soalUjian = new UjianAssetSoal();
 					soalUjian.setSoalType("PILIHANGANDA");
 					soalUjian.setUuidSoal(data);
-					soalUjian.setUuidUjian(data);
 					soalUjian.setUuidUjian(ujian.getUuid());
 					ujianAssetSoalRepository.save(soalUjian);
 				});				
@@ -1584,7 +1652,6 @@ public class SoalService {
 					UjianAssetSoal soalUjian = new UjianAssetSoal();
 					soalUjian.setSoalType("PAULI");
 					soalUjian.setUuidSoal(data);
-					soalUjian.setUuidUjian(data);
 					soalUjian.setUuidUjian(ujian.getUuid());
 					ujianAssetSoalRepository.save(soalUjian);
 				});				
@@ -1596,7 +1663,6 @@ public class SoalService {
 					UjianAssetSoal soalUjian = new UjianAssetSoal();
 					soalUjian.setSoalType("VIDEO");
 					soalUjian.setUuidSoal(data);
-					soalUjian.setUuidUjian(data);
 					soalUjian.setUuidUjian(ujian.getUuid());
 					ujianAssetSoalRepository.save(soalUjian);
 				});			
@@ -1611,6 +1677,17 @@ public class SoalService {
 					soalUjian.setUuidUjian(ujian.getUuid());
 					ujianAssetSoalRepository.save(soalUjian);
 				});				
+			}
+
+			if(request.getUuidSoalHilang() != null) {
+				ujianAssetSoalRepository.deleteBySoalTypeAndUuidUjian("SOALHILANG", uuid);
+				request.getUuidSoalPauli().forEach(data -> {
+					UjianAssetSoal soalUjian = new UjianAssetSoal();
+					soalUjian.setSoalType("SOALHILANG");
+					soalUjian.setUuidSoal(data);
+					soalUjian.setUuidUjian(ujian.getUuid());
+					ujianAssetSoalRepository.save(soalUjian);
+				});
 			}
 			
 			response.setMessage(BaseResponse.SUCCESS);

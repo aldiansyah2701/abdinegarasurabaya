@@ -2,12 +2,7 @@ package com.abdinegara.surabaya.message;
 
 import java.util.List;
 
-import com.abdinegara.surabaya.entity.PembelajaranVideo;
-import com.abdinegara.surabaya.entity.SoalEssay;
-import com.abdinegara.surabaya.entity.SoalPauli;
-import com.abdinegara.surabaya.entity.SoalPilihanGanda;
-import com.abdinegara.surabaya.entity.SoalTKD;
-import com.abdinegara.surabaya.entity.Ujian;
+import com.abdinegara.surabaya.entity.*;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -22,5 +17,6 @@ public class ResponseDetailUjian {
 	private List<SoalPauli> detailPaulis;
 	private List<PembelajaranVideo> detailVideos;
 	private List<SoalTKD> detailTKDs;
+	private List<SoalHilang> detailSoalHilangs;
 
 }

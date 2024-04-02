@@ -4,6 +4,7 @@ import java.security.Principal;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.abdinegara.surabaya.message.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
@@ -21,10 +22,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.abdinegara.surabaya.message.RequestCreateSoalPauli;
-import com.abdinegara.surabaya.message.RequestCreateUjian;
-import com.abdinegara.surabaya.message.RequestLogin;
-import com.abdinegara.surabaya.message.RequestQuote;
 import com.abdinegara.surabaya.service.SoalService;
 import com.abdinegara.surabaya.service.SoalService.SOALTYPE;
 
@@ -109,6 +106,12 @@ public class SoalController {
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<Object> createSoalGanjilGenap(@RequestBody RequestCreateSoalPauli request) {
 		return soalService.createSoalGanjilGenap("", request);
+	}
+
+	@PostMapping(path = "/create/soal-hilang", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> createSoalHilang(@RequestBody RequestCreateSoalHilang request) {
+		return soalService.createSoalHilang("", request);
 	}
 
 	@PostMapping(path = "/upload/image", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE } )
@@ -202,6 +205,15 @@ public class SoalController {
 			@RequestParam("uuid") String uuid,
 			@RequestBody RequestCreateSoalPauli request) {
 		return soalService.createSoalPauli(uuid, request);
+	}
+
+	@PostMapping(path = "/update/soal-hilang", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> updateSoalHilang(
+			@RequestParam("uuid") String uuid,
+			@RequestBody RequestCreateSoalHilang request) {
+
+		return soalService.createSoalHilang(uuid, request);
 	}
 
 	@PostMapping(path = "/update/ganjil-genap", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
