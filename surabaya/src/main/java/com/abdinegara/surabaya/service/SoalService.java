@@ -21,6 +21,7 @@ import javax.servlet.ServletContext;
 import com.abdinegara.surabaya.entity.*;
 import com.abdinegara.surabaya.message.*;
 import com.abdinegara.surabaya.repository.*;
+import com.dropbox.core.DbxException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
@@ -40,6 +41,11 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
+import com.dropbox.core.DbxRequestConfig;
+import com.dropbox.core.v2.DbxClientV2;
+import com.dropbox.core.v2.files.FileMetadata;
+import com.dropbox.core.v2.files.UploadErrorException;
 
 @Service
 @Slf4j
@@ -95,7 +101,10 @@ public class SoalService {
 	
 	@Value("${directory.soal.tkd}")
 	private String directoryTkd;
-	
+
+
+	@Value("${dropbox.accessToken}")
+	private String accessToken;
 
 
 	private static final String UPLOAD_DIR = "C:\\Users\\Dell3420\\Documents\\abdinegaraexel";
@@ -1161,6 +1170,17 @@ public class SoalService {
 			IntStream.range(0, images.length).forEach(index -> {
 				MultipartFile imageFile = images[index];
 
+				try {
+					uploadFile(imageFile, "/preview-image/"+imageFile.getOriginalFilename());
+					log.info( "File uploaded successfully!");
+//					return "File uploaded successfully!";
+				} catch (IOException | UploadErrorException e) {
+					log.info("Failed to upload file: " + e.getMessage());
+//					return "Failed to upload file: " + e.getMessage();
+				} catch (DbxException e) {
+					throw new RuntimeException(e);
+				}
+
 				String uploadImagePath = "";
 //				if(directoryBasePath == "" || directoryBasePath.isEmpty()) {
 				try {
@@ -1200,6 +1220,18 @@ public class SoalService {
 		response.setData(pathImages);
 		response.setMessage(BaseResponse.SUCCESS);
 		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	private DbxClientV2 getClient() {
+		DbxRequestConfig config = DbxRequestConfig.newBuilder("dropbox/abdi_negara").build();
+		return new DbxClientV2(config, accessToken);
+	}
+
+	public void uploadFile(MultipartFile file, String path) throws IOException, DbxException {
+		try (InputStream in = file.getInputStream()) {
+			getClient().files().uploadBuilder(path)
+					.uploadAndFinish(in);
+		}
 	}
 	
 	@Transactional(readOnly = false)
@@ -1486,6 +1518,15 @@ public class SoalService {
 				ujianAssetSoalRepository.save(soalUjian);
 			});
 
+			request.getUuidSoalGanjilGenap().forEach(data -> {
+				UjianAssetSoal soalUjian = new UjianAssetSoal();
+				soalUjian.setSoalType("GANJILGENAP");
+				soalUjian.setUuidSoal(data);
+				soalUjian.setUuidUjian(ujian.getUuid());
+				ujianAssetSoalRepository.save(soalUjian);
+			});
+
+
 			response.setMessage(BaseResponse.SUCCESS);
 			return new ResponseEntity<>(response, HttpStatus.OK);
 
@@ -1513,8 +1554,9 @@ public class SoalService {
 				 List<SoalPauli> detailPaulis= new ArrayList<SoalPauli>();
 				 List<PembelajaranVideo> detailVideos = new ArrayList<PembelajaranVideo>();
 				 List<SoalTKD> detailTKDs= new ArrayList<SoalTKD>();
-				List<SoalHilang> detailSoalHilangs= new ArrayList<SoalHilang>();
-				
+				 List<SoalHilang> detailSoalHilangs= new ArrayList<SoalHilang>();
+				 List<SoalGanjilGenap> detailGanjilGenaps= new ArrayList<SoalGanjilGenap>();
+
 				List<UjianAssetSoal> soals = ujianAssetSoalRepository.findByUuidUjian(uuid);
 				soals.forEach(soal ->{
 					if ("PILIHANGANDA".equals(soal.getSoalType())) {
@@ -1565,6 +1607,11 @@ public class SoalService {
 						if (data.isPresent()) {
 							detailSoalHilangs.add(data.get());
 						}
+					} else if ("GANJILGENAP".equals(soal.getSoalType())) {
+						Optional<SoalGanjilGenap> data = soalGanjilGenapRepository.findById(soal.getUuidSoal());
+						if (data.isPresent()) {
+							detailGanjilGenaps.add(data.get());
+						}
 					}
 				});
 				
@@ -1574,6 +1621,7 @@ public class SoalService {
 				responseUjian.setDetailVideos(detailVideos);
 				responseUjian.setDetailTKDs(detailTKDs);
 				responseUjian.setDetailSoalHilangs(detailSoalHilangs);
+				responseUjian.setDetailGanjilGenaps(detailGanjilGenaps);
 				
 				response.setData(responseUjian);
 				return new ResponseEntity<>(response, HttpStatus.OK);
@@ -1670,7 +1718,7 @@ public class SoalService {
 			
 			if(request.getUuidSoalTKD() != null) {
 				ujianAssetSoalRepository.deleteBySoalTypeAndUuidUjian("TKD", uuid);
-				request.getUuidSoalPauli().forEach(data -> {
+				request.getUuidSoalTKD().forEach(data -> {
 					UjianAssetSoal soalUjian = new UjianAssetSoal();
 					soalUjian.setSoalType("TKD");
 					soalUjian.setUuidSoal(data);
@@ -1681,9 +1729,20 @@ public class SoalService {
 
 			if(request.getUuidSoalHilang() != null) {
 				ujianAssetSoalRepository.deleteBySoalTypeAndUuidUjian("SOALHILANG", uuid);
-				request.getUuidSoalPauli().forEach(data -> {
+				request.getUuidSoalHilang().forEach(data -> {
 					UjianAssetSoal soalUjian = new UjianAssetSoal();
 					soalUjian.setSoalType("SOALHILANG");
+					soalUjian.setUuidSoal(data);
+					soalUjian.setUuidUjian(ujian.getUuid());
+					ujianAssetSoalRepository.save(soalUjian);
+				});
+			}
+
+			if(request.getUuidSoalGanjilGenap() != null) {
+				ujianAssetSoalRepository.deleteBySoalTypeAndUuidUjian("GANJILGENAP", uuid);
+				request.getUuidSoalGanjilGenap().forEach(data -> {
+					UjianAssetSoal soalUjian = new UjianAssetSoal();
+					soalUjian.setSoalType("GANJILGENAP");
 					soalUjian.setUuidSoal(data);
 					soalUjian.setUuidUjian(ujian.getUuid());
 					ujianAssetSoalRepository.save(soalUjian);

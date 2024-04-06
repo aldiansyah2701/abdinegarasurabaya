@@ -18,5 +18,6 @@ public class ResponseDetailUjian {
 	private List<PembelajaranVideo> detailVideos;
 	private List<SoalTKD> detailTKDs;
 	private List<SoalHilang> detailSoalHilangs;
+	private List<SoalGanjilGenap> detailGanjilGenaps;
 
 }

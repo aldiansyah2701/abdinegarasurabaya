@@ -1,10 +1,8 @@
 package com.abdinegara.surabaya.service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
+import com.abdinegara.surabaya.entity.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.abdinegara.surabaya.entity.ModelUserAndRoles;
-import com.abdinegara.surabaya.entity.Role;
 import com.abdinegara.surabaya.entity.Role.ROLE;
-import com.abdinegara.surabaya.entity.Siswa;
-import com.abdinegara.surabaya.entity.User;
 import com.abdinegara.surabaya.kernel.JwtTokenProvider;
 import com.abdinegara.surabaya.message.BaseResponse;
 import com.abdinegara.surabaya.message.RequestRegisterUser;
@@ -92,6 +86,10 @@ public class UserService {
 		user.setCreatedDate(new Date());
 		user.setActive(true);
 		user.setUserType(data.getType().toString());
+		user.setAdminEmaill(data.getAdmin() != null ? data.getAdmin().getEmail():null);
+		user.setAdminName(data.getAdmin() != null ? data.getAdmin().getName():null);
+		user.setAdminPhone(data.getAdmin() != null ? data.getAdmin().getHandphone():null);
+
 		user = userRepository.save(user);
 
 		for (String roleName : data.getRoles()) {
@@ -142,7 +140,7 @@ public class UserService {
 	}
 	
 	public ResponseEntity<Object> getAllUser() {
-				
+
 		List<ModelUserAndRoles> datas = roleRepository.getAllUserAndRoles();
 		List<ResponseGetAllUsers> response = new ArrayList<>();
 
@@ -155,6 +153,13 @@ public class UserService {
 		}
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	public ResponseEntity<Object> getAllAdmin() {
+
+		List<ModelAdminAndRoles> datas = roleRepository.getAllAdminAndRoles();
+
+		return new ResponseEntity<>(datas, HttpStatus.OK);
 	}
 	
 	public ResponseEntity<Object> getUser(String name) {
@@ -193,7 +198,33 @@ public class UserService {
 		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 
 	}
-	
+
+	@Transactional(readOnly = false)
+	public ResponseEntity<Object> deleteAdmin(String uuid) {
+		BaseResponse response = new BaseResponse();
+		response.setMessage("Delete data successfully");
+		Optional<User> dataUser = userRepository.findById(uuid);
+		if (dataUser.isPresent()) {
+			User user = dataUser.get();
+			if("SISWA".equals(user.getUserType())){
+				Siswa siswa = siswaRepository.findByUserUuid(uuid);
+				siswa.setUserUuid(null);
+
+				siswaRepository.save(siswa);
+			}
+			roleRepository.deleteByUser(user);
+			userRepository.deleteById(uuid);
+
+
+
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+
+		response.setMessage("Data not found");
+		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+
+	}
+
 	@Transactional(readOnly = false)
 	public ResponseEntity<Object> updatePasswordUser(RequestUpdateUser data) {
 		BaseResponse response = new BaseResponse();

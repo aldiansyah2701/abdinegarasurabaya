@@ -19,5 +19,6 @@ public class RequestCreateUjian {
 	private List<String> uuidSoalVideo;
 	private List<String> uuidSoalTKD;
 	private List<String> uuidSoalHilang;
+	private List<String> uuidSoalGanjilGenap;
 	
 }

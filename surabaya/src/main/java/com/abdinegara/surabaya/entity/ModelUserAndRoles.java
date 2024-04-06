@@ -9,4 +9,5 @@ public interface ModelUserAndRoles {
 	String getUuid();
 	
 	String getPasswordData();
+
 }

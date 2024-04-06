@@ -74,4 +74,23 @@ public class UserController {
 	public ResponseEntity<Object> deleteUser(@PathVariable("name") String name) {
 		return userService.deleteUser(name);
 	}
+
+	@DeleteMapping(value = "/delete/user/{uuid}")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> deleteAdmin(@PathVariable("uuid") String uuid) {
+		return userService.deleteAdmin(uuid);
+	}
+
+//	@DeleteMapping(value = "/delete/siswa/{uuid}")
+//	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+//	public ResponseEntity<Object> deleteSiswa(@PathVariable("uuid") String uuid) {
+//		return userService.deleteAdmin(uuid);
+//	}
+
+
+	@GetMapping(value = "/all/admin")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SUPERVISOR')")
+	public ResponseEntity<Object> getAllAdmin() {
+		return userService.getAllAdmin();
+	}
 }

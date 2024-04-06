@@ -194,7 +194,7 @@ public class SiswaService {
 		BaseResponse response = new BaseResponse();
 
 		try {
-			Page<Siswa> siswaPage = siswaRepository.findByTitle(type, pageable);
+			Page<Siswa> siswaPage = siswaRepository.findByTitleAndUserUuidNotNull(type, pageable);
 			
 			List<Siswa> modifiedSiswas = siswaPage.getContent().stream()
 	                .map(this::modifyData) // Modify each Siswa entity

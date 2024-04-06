@@ -18,6 +18,8 @@ public class RequestRegisterUser {
 	private TYPE type;
 	
 	private RequestRegisterSiswa siswa;
+
+	private RequestRegisterAdmin admin;
 	
 	
 	public enum TYPE{

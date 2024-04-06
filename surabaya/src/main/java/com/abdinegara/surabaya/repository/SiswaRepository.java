@@ -10,6 +10,8 @@ import com.abdinegara.surabaya.entity.Siswa;
 @Repository
 public interface SiswaRepository extends CrudRepository<Siswa, String>{
 	
-	Page<Siswa> findByTitle(String title, Pageable pageable);
+	Page<Siswa> findByTitleAndUserUuidNotNull(String title, Pageable pageable);
+
+	Siswa findByUserUuid(String userUuid);
 
 }
