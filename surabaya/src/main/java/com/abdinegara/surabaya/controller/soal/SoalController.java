@@ -8,9 +8,12 @@ import com.abdinegara.surabaya.message.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -246,19 +249,19 @@ public class SoalController {
 	}
 	
 	@GetMapping(value = "/list/{type}")
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
 	public ResponseEntity<Object> getListSoal(@PathVariable("type") SOALTYPE type, Pageable pageable) {
 		return soalService.getSoal(type, pageable);
 	}
 	
 	@GetMapping(value = "/download")
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
 	public ResponseEntity<Object> downloadSoal(@RequestParam("path") String path) {
 		return soalService.downloadSoal(path);
 	}
 	
 	@GetMapping(value = "/detail/{type}/{uuid}")
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
 	public ResponseEntity<Object> getDetailSiswa(@PathVariable("type") SOALTYPE type, @PathVariable("uuid") String uuid) {
 		return soalService.getSoalDetail(type, uuid);
 	}
@@ -275,14 +278,42 @@ public class SoalController {
 		return soalService.createUjian(request);
 	}
 	
+	@GetMapping(value = "/list/ujian-old")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
+	public ResponseEntity<Object> getListUjian(@RequestParam(name = "jenis", required = false) String jenis, Pageable pageable) {
+		return soalService.getListUjian(jenis, pageable);
+	}
+
 	@GetMapping(value = "/list/ujian")
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
-	public ResponseEntity<Object> getListUjian(Pageable pageable) {
-		return soalService.getListUjian(pageable);
+	public ResponseEntity<Object> getListUjianNew(@RequestParam(name = "jenis", required = false) String jenis, Pageable pageable) {
+		// Get the current authentication
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+		// Check if the user has the role "ROLE_SISWA"
+		boolean isSiswa = authentication.getAuthorities().stream()
+				.anyMatch(authority -> authority.getAuthority().equals("ROLE_SISWA"));
+
+		// Check if the user has the role "ROLE_ADMIN"
+		boolean isAdmin = authentication.getAuthorities().stream()
+				.anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+
+		// Check if the user is a Siswa and the jenis parameter is not provided
+		if (isSiswa && jenis == null) {
+			return ResponseEntity.badRequest().body("Jenis parameter is required for Siswa");
+		}
+
+		// If the user is an admin, jenis parameter is optional, otherwise, it's required
+		if (isAdmin || (isSiswa && jenis != null)) {
+			// Call your service method and return the response
+			return soalService.getListUjian(jenis, pageable);
+		} else {
+			// If the user is neither admin nor Siswa with jenis provided, return access denied
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+		}
 	}
 	
 	@GetMapping(value = "/detail/ujian/{uuid}")
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
 	public ResponseEntity<Object> getDetailUjian(@PathVariable("uuid") String uuid) {
 		return soalService.getDetailUjian(uuid);
 	}
@@ -297,6 +328,41 @@ public class SoalController {
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<Object> createUjian(@RequestBody RequestCreateUjian request, @PathVariable("uuid") String uuid) {
 		return soalService.updateUjian(request, uuid);
+	}
+
+	@GetMapping(value = "/test-mail")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
+	public ResponseEntity<Object> testMail() {
+		soalService.testMail();
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
+	@PostMapping(value = "/beli/ujian")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
+	public ResponseEntity<Object> belilUjian(@RequestBody RequestBeliUjian request) {
+		return soalService.beliUjian(request);
+	}
+
+	@GetMapping(value = "/history/approval/ujian")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> listApprovalBeliUjian(@RequestParam(name = "approval", required = false) SoalService.APPROVAL approval, Pageable pageable) {
+		return soalService.listApprovalBeliUjian(approval, pageable);
+	}
+
+	@GetMapping(value = "/history-siswa/beli/ujian")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
+	public ResponseEntity<Object> historyBeliUjian(@RequestParam(name = "userUuid", required = false) String userUuid, Pageable pageable) {
+		return soalService.historyBeliUjian(userUuid, pageable);
+	}
+
+	@PostMapping(value = "/approval/beli/ujian")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
+	public ResponseEntity<Object> approvalbelilUjian(@RequestParam(name = "approval", required = true) SoalService.APPROVAL approval,
+											 @RequestParam(name = "userUuid", required = true) String userUuid,
+											 @RequestParam(name = "ujianUuid", required = true) String ujianUuid,
+											 @RequestParam(name = "adminName", required = true) String adminName,
+													 @RequestParam(name = "remark", required = false) String remark) {
+		return soalService.approvalsBeliUjian(approval, userUuid, ujianUuid, adminName, remark);
 	}
 	
 }

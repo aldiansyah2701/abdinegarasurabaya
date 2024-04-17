@@ -1,6 +1,7 @@
 package com.abdinegara.surabaya.controller.user;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -92,5 +93,11 @@ public class UserController {
 	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SUPERVISOR')")
 	public ResponseEntity<Object> getAllAdmin() {
 		return userService.getAllAdmin();
+	}
+
+	@GetMapping(value = "/check-token")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
+	public ResponseEntity<Object> chekToken() {
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 }

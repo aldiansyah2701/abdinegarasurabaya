@@ -13,5 +13,7 @@ import com.abdinegara.surabaya.entity.Ujian;
 public interface UjianRepository extends CrudRepository<Ujian, String>{
 
 	Page<Ujian> findAll(Pageable pageable);
+
+	Page<Ujian> findByJenis(String jenis, Pageable pageable);
 	Optional<Ujian> findByNamaUjian(String namaUjian);
 }

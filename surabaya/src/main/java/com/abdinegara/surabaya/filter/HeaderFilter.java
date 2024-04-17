@@ -42,19 +42,28 @@ public class HeaderFilter extends OncePerRequestFilter {
 			}
 		} catch (SignatureException ex) {
 			logger.error("Invalid JWT Signature");
+			log.info("error auth {}", "Invalid JWT Signature");
 		} catch (MalformedJwtException ex) {
 			logger.error("Invalid JWT token");
+			log.info("error auth {}", "Invalid JWT token");
 		} catch (UnsupportedJwtException ex) {
 			logger.error("Unsupported JWT exception");
+			log.info("error auth {}", "Unsupported JWT exception");
 		} catch (IllegalArgumentException ex) {
 			logger.error("Jwt claims string is empty");
+			log.info("error auth {}", "Jwt claims string is empty");
+
+//			SecurityContextHolder.clearContext();
+//			response.sendError(HttpStatus.FORBIDDEN.value(), ex.getMessage());
+//			return;
 		} catch ( ExpiredJwtException ex) {
 			request.setAttribute("exception", "JWT expired");
 		} catch (Exception ex) {
 			// this is very important, since it guarantees the user is not authenticated at all
 			SecurityContextHolder.clearContext();
 			response.sendError(HttpStatus.FORBIDDEN.value(), ex.getMessage());
-			log.error("error auth {}", ex.getMessage());
+			log.info("error auth {}", ex.getMessage());
+
 			return;
 		}
 

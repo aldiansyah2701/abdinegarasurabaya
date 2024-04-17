@@ -33,8 +33,9 @@ public class Ujian extends BaseEntity{
 	
 	@Column(name = "harga")
 	private String harga;
-	
-	@Column(name = "deskripsi")
+
+	@Column(columnDefinition = "TEXT")
 	private String deksripsi;
+
 
 }

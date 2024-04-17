@@ -16,6 +16,8 @@ import java.util.stream.IntStream;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 import javax.servlet.ServletContext;
 
 import com.abdinegara.surabaya.entity.*;
@@ -33,6 +35,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -106,11 +110,27 @@ public class SoalService {
 	@Value("${dropbox.accessToken}")
 	private String accessToken;
 
+	@Value("${mail.send.from}")
+	String mailSendFrom;
+
+	@Autowired
+	private JavaMailSender javaMailSender;
+
+	@Autowired
+	private PembelianUjianRepository pembelianUjianRepository;
+
+	@Autowired
+	private SiswaRepository siswaRepository;
+
 
 	private static final String UPLOAD_DIR = "C:\\Users\\Dell3420\\Documents\\abdinegaraexel";
 
 	public enum SOALTYPE {
 		PILIHANGANDA, ESSAY, PAULI, TKD, SOALHILANG, GANJILGENAP
+	}
+
+	public enum APPROVAL {
+		NEED_APPROVAL, DECLINE, APPROVE
 	}
 
 	@Transactional(readOnly = false)
@@ -1532,10 +1552,16 @@ public class SoalService {
 
 		}
 	 
-		public ResponseEntity<Object> getListUjian(Pageable pageable) {
+		public ResponseEntity<Object> getListUjian(String jenis, Pageable pageable) {
 			BaseResponse response = new BaseResponse();
 			response.setMessage("Data found successfully");
-			Page<Ujian> data = ujianRepository.findAll(pageable);
+
+			if(jenis == null){
+				Page<Ujian> data = ujianRepository.findAll(pageable);
+				response.setData(data);
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+			Page<Ujian> data = ujianRepository.findByJenis(jenis, pageable);
 			response.setData(data);
 			return new ResponseEntity<>(response, HttpStatus.OK);
 
@@ -1754,4 +1780,109 @@ public class SoalService {
 
 		}
 
+	public void testMail() {
+	sendEmail("aldiansyahxramadlan@gmail.com","test","halo");
+	}
+
+	public void sendEmail(String to, String subject, String body) {
+		MimeMessage message = javaMailSender.createMimeMessage();
+
+		try {
+
+			MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message, true);
+
+			mimeMessageHelper.setFrom(mailSendFrom);
+			mimeMessageHelper.setSubject(subject);
+			mimeMessageHelper.setTo(to);
+
+			mimeMessageHelper.setText(body);
+
+			javaMailSender.send(mimeMessageHelper.getMimeMessage());
+			log.info("success send email");
+		} catch (MessagingException e) {
+			log.info("error sendMailHTML : {}", e.getMessage());
+		}
+	}
+
+	@Transactional(readOnly = false)
+	public ResponseEntity<Object> beliUjian(RequestBeliUjian request) {
+		Optional<PembelianUjian> beliUjian = pembelianUjianRepository.findByUjianUuidAndUserUuid(request.getUjianUuid(), request.getUserUuid());
+		BaseResponse response = new BaseResponse();
+		if(beliUjian.isPresent()){
+			response.setMessage("ujian sudah dibeli");
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
+
+		Optional<Ujian> ujian = ujianRepository.findById(request.getUjianUuid());
+
+		if(!ujian.isPresent()){
+			response.setMessage("ujian tidak tersedia");
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
+
+		Siswa siswa = siswaRepository.findByUserUuid(request.getUserUuid());
+		if(siswa == null){
+			response.setMessage("siswa tidak tersedia");
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
+
+		PembelianUjian pembelianUjian = new PembelianUjian();
+		pembelianUjian.setUjianUuid(request.getUjianUuid());
+		pembelianUjian.setUserUuid(request.getUserUuid());
+		pembelianUjian.setStatus("BELUM_BAYAR");
+		pembelianUjian.setApproval(APPROVAL.NEED_APPROVAL.toString());
+		pembelianUjianRepository.save(pembelianUjian);
+
+		// send email harap bayar ke siswa
+
+
+		// send email ke semua admin ada siswa yang beli soal
+
+
+
+		response.setMessage("Pembelian ujian berhasil");
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@Transactional(readOnly = false)
+	public ResponseEntity<Object> listApprovalBeliUjian(APPROVAL approval, Pageable pageable) {
+		BaseResponse response = new BaseResponse();
+
+		if(approval == null ){
+			Page<PembelianUjian> pembelianUjian =  pembelianUjianRepository.findAll(pageable);
+			response.setData(pembelianUjian);
+		} else {
+			Page<PembelianUjian> pembelianUjian =  pembelianUjianRepository.findByApproval(approval.toString(), pageable);
+			response.setData(pembelianUjian);
+		}
+
+		response.setMessage("Data found successfully");
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@Transactional(readOnly = false)
+	public ResponseEntity<Object> historyBeliUjian(String userUuid, Pageable pageable) {
+		BaseResponse response = new BaseResponse();
+
+		Page<PembelianUjian> pembelianUjian =  pembelianUjianRepository.findByUserUuid(userUuid, pageable);
+		response.setData(pembelianUjian);
+
+		response.setMessage("Data found successfully");
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@Transactional(readOnly = false)
+	public ResponseEntity<Object> approvalsBeliUjian(APPROVAL approval, String userUuid, String ujianUuid, String adminName, String remark) {
+		BaseResponse response = new BaseResponse();
+
+		Optional<PembelianUjian> pembelianUjian =  pembelianUjianRepository.findByUjianUuidAndUserUuid(ujianUuid, userUuid);
+		PembelianUjian data = pembelianUjian.get();
+		data.setApproveBy(adminName);
+		data.setApproval(approval.toString());
+		data.setRemark(remark);
+		pembelianUjianRepository.save(data);
+
+		response.setMessage("Data update successfully");
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
 }
