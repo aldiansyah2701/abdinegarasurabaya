@@ -364,5 +364,22 @@ public class SoalController {
 													 @RequestParam(name = "remark", required = false) String remark) {
 		return soalService.approvalsBeliUjian(approval, userUuid, ujianUuid, adminName, remark);
 	}
-	
+
+	@DeleteMapping(value = "/delete/beli/ujian/{uuid}")
+	@PreAuthorize("hasAuthority('ROLE_SISWA')")
+	public ResponseEntity<Object> deleteBeliUjian(@PathVariable("uuid") String uuid) {
+		return soalService.deleteBeliUjian(uuid);
+	}
+
+	@PostMapping(path = "/upload-transfer/beli/ujian", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE } )
+	@PreAuthorize("hasAuthority('ROLE_SISWA')")
+	public ResponseEntity<Object> uploadTransferBeliUjian(
+			@RequestParam("ujianUuid") String ujianUuid,
+			@RequestParam("userUuid") String userUuid,
+			@RequestParam("rekening") String rekening,
+			@RequestParam(name = "file", required = true) MultipartFile files) {
+		return soalService.uploadTransferBeliUjian(ujianUuid, userUuid, rekening, files);
+	}
+
+
 }

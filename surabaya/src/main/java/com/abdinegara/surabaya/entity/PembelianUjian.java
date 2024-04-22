@@ -39,5 +39,14 @@ public class PembelianUjian extends BaseEntity {
     @Column(name = "file_path")
     private String filePath;
 
+    @Column(name = "rekening")
+    private String rekening;
+
+    @Transient
+    private Ujian detailUjian;
+
+    @Transient
+    private String namaSiswa;
+
 
 }

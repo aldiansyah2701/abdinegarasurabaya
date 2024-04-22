@@ -3,14 +3,11 @@ package com.abdinegara.surabaya.service;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import javax.crypto.Cipher;
@@ -30,6 +27,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -37,9 +35,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.web.multipart.MultipartFile;
+import freemarker.template.Configuration;
 
 import lombok.extern.slf4j.Slf4j;
 import java.io.FileInputStream;
@@ -107,6 +108,9 @@ public class SoalService {
 	private String directoryTkd;
 
 
+	@Value("${directory.bukti.transfer}")
+	private String directoryBuktiTransfer;
+
 	@Value("${dropbox.accessToken}")
 	private String accessToken;
 
@@ -117,10 +121,16 @@ public class SoalService {
 	private JavaMailSender javaMailSender;
 
 	@Autowired
+	Configuration fmConfiguration;
+
+	@Autowired
 	private PembelianUjianRepository pembelianUjianRepository;
 
 	@Autowired
 	private SiswaRepository siswaRepository;
+
+	@Autowired
+	private UserRepository userRepository;
 
 
 	private static final String UPLOAD_DIR = "C:\\Users\\Dell3420\\Documents\\abdinegaraexel";
@@ -1482,7 +1492,7 @@ public class SoalService {
 
 			Ujian ujian = new Ujian();
 			ujian.setCreatedDate(new Date());
-			ujian.setDeksripsi(request.getDeskripsi());
+			ujian.setDeskripsi(request.getDeskripsi());
 			ujian.setHarga(request.getHarga());
 			ujian.setJenis(request.getJenis());
 			ujian.setNamaUjian(request.getNamaUjian());
@@ -1690,7 +1700,7 @@ public class SoalService {
 			
 			Ujian ujian = dataUjian.get();
 			ujian.setUpdateDate(new Date());
-			ujian.setDeksripsi(request.getDeskripsi() == null ? ujian.getDeksripsi():request.getDeskripsi());
+			ujian.setDeskripsi(request.getDeskripsi() == null ? ujian.getDeskripsi():request.getDeskripsi());
 			ujian.setHarga(request.getHarga() == null ? ujian.getHarga():request.getHarga());
 			ujian.setJenis(request.getJenis() == null ? ujian.getJenis():request.getJenis());
 			ujian.setNamaUjian(request.getNamaUjian() == null ? ujian.getNamaUjian():request.getNamaUjian());
@@ -1781,10 +1791,20 @@ public class SoalService {
 		}
 
 	public void testMail() {
-	sendEmail("aldiansyahxramadlan@gmail.com","test","halo");
+		Map<String, Object> model = new HashMap<>();
+		model.put("tanggal","Surabaya, 19 April 2024");
+		model.put("name","Aldiansyah");
+		model.put("rekening","1234567");
+		model.put("bank","BSI");
+		model.put("tagihan","50.000");
+		model.put("notagihan","UUID");
+		model.put("email","aldiansyahxramadlan@gmail.com");
+		model.put("deskripsi","Ujian porli tingkat 3");
+		model.put("duedate","15 Apr 2024 00:20:28");
+		sendEmail("","aldiansyahxramadlan@gmail.com","Tagihan test",model, null);
 	}
-
-	public void sendEmail(String to, String subject, String body) {
+	@Async
+	public void sendEmail(String type, String to , String subject, Map<String, Object> model, String[] bcc) {
 		MimeMessage message = javaMailSender.createMimeMessage();
 
 		try {
@@ -1795,13 +1815,46 @@ public class SoalService {
 			mimeMessageHelper.setSubject(subject);
 			mimeMessageHelper.setTo(to);
 
-			mimeMessageHelper.setText(body);
+			if(bcc != null){
+				mimeMessageHelper.setBcc(bcc);
+			}
+
+			String mailContent = null;
+			if ("tagihan_siswa".equals(type)) {
+				mailContent = getMailOtpContentFromTemplate(model, "template-tagihan-siswa.flth");
+			} else if ("pelunasan_siswa".equals(type)) {
+				mailContent = getMailOtpContentFromTemplate(model, "template-pelunasan-siswa.flth");
+			} else if ("tagihan_admin".equals(type)) {
+				mailContent = getMailOtpContentFromTemplate(model, "template-tagihan-admin.flth");
+			} else if ("pelunasan_admin".equals(type)) {
+				mailContent = getMailOtpContentFromTemplate(model, "template-pelunasan-admin.flth");
+			} else if ("approval_siswa".equals(type)) {
+				mailContent = getMailOtpContentFromTemplate(model, "template-approval-siswa.flth");
+			} else {
+				mailContent = getMailOtpContentFromTemplate(model, "template.flth");
+			}
+
+
+
+			mimeMessageHelper.setText(mailContent, true);
 
 			javaMailSender.send(mimeMessageHelper.getMimeMessage());
 			log.info("success send email");
 		} catch (MessagingException e) {
 			log.info("error sendMailHTML : {}", e.getMessage());
 		}
+	}
+
+	private String getMailOtpContentFromTemplate(Map<String, Object> model, String template) {
+		StringBuffer content = new StringBuffer();
+
+		try {
+			content.append(FreeMarkerTemplateUtils
+					.processTemplateIntoString(fmConfiguration.getTemplate(template), model));
+		} catch (Exception e) {
+			log.error("error getMailOtpContentFromTemplate : {}", e.getMessage());
+		}
+		return content.toString();
 	}
 
 	@Transactional(readOnly = false)
@@ -1831,14 +1884,48 @@ public class SoalService {
 		pembelianUjian.setUserUuid(request.getUserUuid());
 		pembelianUjian.setStatus("BELUM_BAYAR");
 		pembelianUjian.setApproval(APPROVAL.NEED_APPROVAL.toString());
+		Date createdDate = new Date();
+		pembelianUjian.setCreatedDate(createdDate);
 		pembelianUjianRepository.save(pembelianUjian);
 
 		// send email harap bayar ke siswa
 
+		SimpleDateFormat sdf = new SimpleDateFormat("d MMMM yyyy", new Locale("id", "ID")); // Indonesian locale for month names
+
+		// Format the date to the desired string
+		String formattedDate = sdf.format(createdDate);
+
+		NumberFormat nf = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
+
+		// Format the number to currency
+		String harga = ujian.get().getHarga();
+		String formattedNumber = nf.format(Integer.parseInt(harga));
+
+		Map<String, Object> model = new HashMap<>();
+		model.put("tanggal",formattedDate);
+		model.put("name",siswa.getName());
+		model.put("rekening","123456789");
+		model.put("bank","BSI");
+		model.put("tagihan",formattedNumber);
+		model.put("notagihan",pembelianUjian.getUuid());
+		model.put("email",siswa.getEmail());
+		model.put("deskripsi",ujian.get().getDeskripsi());
+		sendEmail("tagihan_siswa", siswa.getEmail(),"Tagihan Pembelian Ujian : " + ujian.get().getNamaUjian(),model, null);
+
 
 		// send email ke semua admin ada siswa yang beli soal
+		Map<String, Object> modelAdmin = new HashMap<>();
+		modelAdmin.put("tanggal",formattedDate);
+		modelAdmin.put("name",siswa.getName());
+		modelAdmin.put("tagihan",formattedNumber);
+		modelAdmin.put("notagihan",pembelianUjian.getUuid());
+		modelAdmin.put("email",siswa.getEmail());
+		modelAdmin.put("deskripsi",ujian.get().getDeskripsi());
 
+		List<String> emailAdmin = userRepository.findEmailAdmin();
+		String[] emailAdminArray = emailAdmin.toArray(new String[0]);
 
+		sendEmail("tagihan_admin", emailAdminArray[0],"Tagihan Pembelian Ujian : " + ujian.get().getNamaUjian(), modelAdmin, emailAdminArray);
 
 		response.setMessage("Pembelian ujian berhasil");
 		return new ResponseEntity<>(response, HttpStatus.OK);
@@ -1848,14 +1935,20 @@ public class SoalService {
 	public ResponseEntity<Object> listApprovalBeliUjian(APPROVAL approval, Pageable pageable) {
 		BaseResponse response = new BaseResponse();
 
+		Page<PembelianUjian> pembelianUjian = null;
 		if(approval == null ){
-			Page<PembelianUjian> pembelianUjian =  pembelianUjianRepository.findAll(pageable);
-			response.setData(pembelianUjian);
+			pembelianUjian =  pembelianUjianRepository.findAll(pageable);
+
 		} else {
-			Page<PembelianUjian> pembelianUjian =  pembelianUjianRepository.findByApproval(approval.toString(), pageable);
-			response.setData(pembelianUjian);
+			pembelianUjian =  pembelianUjianRepository.findByApproval(approval.toString(), pageable);
+
 		}
 
+		List<PembelianUjian> modifiedPembelianUjian = pembelianUjian.getContent().stream()
+						.map(this::modifyData)
+								.toList();
+
+		response.setData(new PageImpl<>(modifiedPembelianUjian, pageable, pembelianUjian.getTotalElements()));
 		response.setMessage("Data found successfully");
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
@@ -1865,7 +1958,13 @@ public class SoalService {
 		BaseResponse response = new BaseResponse();
 
 		Page<PembelianUjian> pembelianUjian =  pembelianUjianRepository.findByUserUuid(userUuid, pageable);
-		response.setData(pembelianUjian);
+
+		List<PembelianUjian> modifiedPembelianUjian = pembelianUjian.getContent().stream()
+				.map(this::modifyData)
+				.toList();
+
+		response.setData(new PageImpl<>(modifiedPembelianUjian, pageable, pembelianUjian.getTotalElements()));
+
 
 		response.setMessage("Data found successfully");
 		return new ResponseEntity<>(response, HttpStatus.OK);
@@ -1882,7 +1981,148 @@ public class SoalService {
 		data.setRemark(remark);
 		pembelianUjianRepository.save(data);
 
+		Siswa siswa = siswaRepository.findByUserUuid(pembelianUjian.get().getUserUuid());
+		Optional<Ujian> ujian = ujianRepository.findById(pembelianUjian.get().getUjianUuid());
+
+		Date createdDate = new Date();
+		SimpleDateFormat sdf = new SimpleDateFormat("d MMMM yyyy", new Locale("id", "ID")); // Indonesian locale for month names
+
+		// Format the date to the desired string
+		String formattedDate = sdf.format(createdDate);
+
+		NumberFormat nf = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
+
+		// Format the number to currency
+		String harga = ujian.get().getHarga();
+		String formattedNumber = nf.format(Integer.parseInt(harga));
+		// send email to siswa
+
+		Map<String, Object> model = new HashMap<>();
+		model.put("tanggal",formattedDate);
+		model.put("status",approval.toString());
+		model.put("name",siswa.getName());
+		model.put("tagihan",formattedNumber);
+		model.put("notagihan",pembelianUjian.get().getUuid());
+		model.put("email",siswa.getEmail());
+		model.put("deskripsi",ujian.get().getDeskripsi());
+		sendEmail("template-approval-siswa.flth", siswa.getEmail(),"Approval Pembelian Ujian : " + ujian.get().getNamaUjian(),model, null);
+
+
 		response.setMessage("Data update successfully");
 		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	private PembelianUjian modifyData(PembelianUjian data){
+		Optional<Ujian> dataUjian = ujianRepository.findById(data.getUjianUuid());
+		Siswa siswa = siswaRepository.findByUserUuid(data.getUserUuid());
+		data.setDetailUjian(dataUjian.get());
+		data.setNamaSiswa(siswa.getName());
+		return data;
+	}
+
+	public ResponseEntity<Object> deleteBeliUjian(String uuid) {
+		BaseResponse response = new BaseResponse();
+		response.setMessage("Delete data successfully");
+		Optional<PembelianUjian> dataUjian = pembelianUjianRepository.findById(uuid);
+		if (dataUjian.isPresent()) {
+			pembelianUjianRepository.deleteById(uuid);
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+
+		response.setMessage("Data not found");
+		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+
+	}
+
+	@Transactional(readOnly = false)
+	public ResponseEntity<Object> uploadTransferBeliUjian(String ujianUuid, String userUuid, String rekening, MultipartFile file) {
+		BaseResponse response = new BaseResponse();
+
+		String uploadPath = "";
+		try {
+			Resource resource = resourceLoader.getResource("classpath:/static"+directoryBuktiTransfer);
+			File file2 = resource.getFile();
+//			uploadPath = file2.getAbsolutePath();
+			uploadPath = (directoryBasePath == "" || directoryBasePath.isEmpty()) ? file2.getAbsolutePath()
+					: (directoryBasePath + directoryBuktiTransfer);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			response.setMessage(e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
+
+		try {
+			// Create the uploads directory if it doesn't exist
+			File uploadDir = new File(uploadPath);
+			if (!uploadDir.exists()) {
+				uploadDir.mkdir();
+			}
+
+			// Save the file to the soal folder
+			File destFile = new File(uploadDir.getAbsolutePath() + File.separator + file.getOriginalFilename());
+			file.transferTo(destFile);
+
+			String path = directoryBuktiTransfer;
+			path = path + "/" + file.getOriginalFilename();
+
+
+			Optional<PembelianUjian> pembelianUjian =  pembelianUjianRepository.findByUjianUuidAndUserUuid(ujianUuid, userUuid);
+			PembelianUjian data = pembelianUjian.get();
+			data.setRekening(rekening);
+			data.setFilePath(path);
+			data.setStatus("SUDAH_BAYAR");
+			pembelianUjianRepository.save(data);
+
+			Siswa siswa = siswaRepository.findByUserUuid(pembelianUjian.get().getUserUuid());
+			Optional<Ujian> ujian = ujianRepository.findById(pembelianUjian.get().getUjianUuid());
+
+			Date createdDate = new Date();
+			SimpleDateFormat sdf = new SimpleDateFormat("d MMMM yyyy", new Locale("id", "ID")); // Indonesian locale for month names
+
+			// Format the date to the desired string
+			String formattedDate = sdf.format(createdDate);
+
+			NumberFormat nf = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
+
+			// Format the number to currency
+			String harga = ujian.get().getHarga();
+			String formattedNumber = nf.format(Integer.parseInt(harga));
+			// send email to siswa
+
+			Map<String, Object> model = new HashMap<>();
+			model.put("tanggal",formattedDate);
+			model.put("status","PAYMENT VERIFICATION PROCESS");
+			model.put("name",siswa.getName());
+			model.put("tagihan",formattedNumber);
+			model.put("notagihan",pembelianUjian.get().getUuid());
+			model.put("email",siswa.getEmail());
+			model.put("deskripsi",ujian.get().getDeskripsi());
+			sendEmail("pelunasan_siswa", siswa.getEmail(),"Pembayaran Pembelian Ujian : " + ujian.get().getNamaUjian(),model, null);
+
+
+			// send email to admin
+			Map<String, Object> modelAdmin = new HashMap<>();
+			modelAdmin.put("tanggal",formattedDate);
+			modelAdmin.put("name",siswa.getName());
+			modelAdmin.put("tagihan",formattedNumber);
+			modelAdmin.put("notagihan",pembelianUjian.get().getUuid());
+			modelAdmin.put("email",siswa.getEmail());
+			modelAdmin.put("deskripsi",ujian.get().getDeskripsi());
+
+			List<String> emailAdmin = userRepository.findEmailAdmin();
+			String[] emailAdminArray = emailAdmin.toArray(new String[0]);
+
+			sendEmail("pelunasan_admin", emailAdminArray[0],"Pembayaran Pembelian Ujian : " + ujian.get().getNamaUjian(), modelAdmin, emailAdminArray);
+
+
+			response.setMessage(BaseResponse.SUCCESS);
+			return new ResponseEntity<>(response, HttpStatus.OK);
+
+		} catch (Exception e) {
+			response.setMessage(e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
+
 	}
 }

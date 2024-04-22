@@ -35,7 +35,7 @@ public class Ujian extends BaseEntity{
 	private String harga;
 
 	@Column(columnDefinition = "TEXT")
-	private String deksripsi;
+	private String deskripsi;
 
 
 }

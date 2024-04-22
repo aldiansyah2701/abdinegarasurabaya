@@ -1,0 +1,119 @@
+<!DOCTYPE html><html lang="en" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml"> 
+<div style="text-align:center"><table style="text-align:left;max-width:640px;color:#737373;border-collapse:collapse;border-left:1px solid #e4e4e4;border-right:1px solid #e4e4e4;vertical-align:top">
+    <tbody>
+    <tr>
+        <td style="background-color:#f8f8f8;padding-left:18px;border-bottom:1px solid #e4e4e4;border-top:1px solid #e4e4e4"></td>
+        <td valign="middle" style="padding:13px 10px 8px 0px;background-color:#f8f8f8;border-top:1px solid #e4e4e4;border-bottom:1px solid #e4e4e4">
+            <table style="width:100%;border-collapse:collapse;border:0;vertical-align:middle">
+                <tbody><tr>
+                    
+                    <td style="text-align:left">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Bank_Syariah_Indonesia.svg/768px-Bank_Syariah_Indonesia.svg.png" alt="BSI" border="0"
+                        class="CToWUd" data-bit="iit" height="50px">
+                    </td>
+                    
+                </tr>
+            </tbody></table>
+        </td>
+        <td style="background-color:#f8f8f8;padding-right:18px;border-top:1px solid #e4e4e4;border-bottom:1px solid #e4e4e4"></td>
+    </tr>
+    <tr>
+        <td style="padding-left:18px"></td>
+        <td style="padding:16px 0px 12px 0px;border-bottom:1px solid #e4e4e4">
+            <span style="font-size:16px;color:#737373"> ${tanggal} </span>
+        </td>
+        <td style="padding-right:18px"></td>
+    </tr>
+    <tr>
+        <td style="padding-left:18px"></td>
+        <td style="padding:18px 0px 12px 0px;vertical-align:top;border-bottom:1px solid #e4e4e4">
+            <div><span style="padding:0px 6px 0px 0px">Kepada Yth. ${name},<br><i>Dear ${name},</i></span>
+                <div>
+                    <div style="padding:12px 0px 12px 0px">
+                        <div style="color:#737373;padding:2px 0px 0px 0px;font-size:14px;line-height:18px">
+                        
+                            Pembayaran anda telah di periksa oleh admin <b>PT Privat Abdinegara Surabaya</b>. dengan rincian sebagai berikut:
+                            <br>
+                            <i>Your payment has been checked by the admin <b>PT Privat Abdinegara Surabaya</b> with detailed info:</i>
+                        
+                        </div>
+                    </div>
+    <table style="width:100%;color:#737373;vertical-align:top;font-size:14px">
+    <tbody>
+    
+			<tr>
+				<td width="175" style="padding-right:6px;padding-bottom:6px;vertical-align:top">status<br><i>status</i></td>
+				<td width="12" style="text-align:center;vertical-align:top">:</td>
+				<td style="padding-right:6px;padding-bottom:6px;vertical-align:top">
+					${status}
+				</td>
+			</tr>
+					
+			
+			<tr>
+				<td width="175" style="padding-right:6px;padding-bottom:6px;vertical-align:top">Kode Tagihan<br><i>Billing ID</i></td>
+				<td width="12" style="text-align:center;vertical-align:top">:</td>
+				<td style="padding-right:6px;padding-bottom:6px;vertical-align:top">
+					${notagihan}
+				</td>
+			</tr>
+
+			<tr>
+				<td width="175" style="padding-right:6px;padding-bottom:6px;vertical-align:top">Surel<br><i>Email</i></td>
+				<td width="12" style="text-align:center;vertical-align:top">:</td>
+				<td style="padding-right:6px;padding-bottom:6px;vertical-align:top">
+					<a href="mailto:putrafirdaus53@gmail.com" target="_blank">${email}</a>
+				</td>
+			</tr>
+
+			<tr>
+				<td width="175" style="padding-right:6px;padding-bottom:6px;vertical-align:top">Nama<br><i>Name</i></td>
+				<td width="12" style="text-align:center;vertical-align:top">:</td>
+				<td style="padding-right:6px;padding-bottom:6px;vertical-align:top">
+					${name}
+				</td>
+			</tr>
+
+						
+			<tr>
+				<td width="175" style="padding-right:6px;padding-bottom:6px;vertical-align:top">Total Tagihan<br><i>Billed Amount</i></td>
+				<td width="12" style="text-align:center;vertical-align:top">:</td>
+				<td style="padding-right:6px;padding-bottom:6px;vertical-align:top">
+					IDR ${tagihan}
+				</td>
+			</tr>
+			
+
+			
+	    
+	
+	
+    
+    
+		
+		<tr>
+			<td width="175" style="padding-right:6px;padding-bottom:6px;vertical-align:top">Deskripsi<br><i>Description</i></td>
+			<td width="12" style="text-align:center;vertical-align:top">:</td>
+			<td style="padding-right:6px;padding-bottom:6px;vertical-align:top">
+				${deskripsi}
+			</td>
+		</tr>
+
+	</tbody>
+	</table>
+	
+	<div style="padding:12px 0px 12px 0px">
+		
+		<br>
+		<div style="color:#737373;padding:2px 0px 0px 0px;font-size:14px;line-height:18px">
+			 Terimakasih.
+			<br>
+			<br>
+			<i>Thank You. </i>
+		</div>
+	</div>
+	</div></div></td></tr></tbody>
+</table><div class="yj6qo"></div><div class="adL">
+	
+</div></div>
+</html>
