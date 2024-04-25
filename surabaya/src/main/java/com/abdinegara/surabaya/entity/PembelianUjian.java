@@ -48,5 +48,8 @@ public class PembelianUjian extends BaseEntity {
     @Transient
     private String namaSiswa;
 
+    @Column(name = "is_used")
+    private String isUsed;
+
 
 }

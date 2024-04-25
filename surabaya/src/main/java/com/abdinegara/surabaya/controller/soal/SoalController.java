@@ -381,5 +381,10 @@ public class SoalController {
 		return soalService.uploadTransferBeliUjian(ujianUuid, userUuid, rekening, files);
 	}
 
+	@PostMapping(value = "/jawaban/ujian")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
+	public ResponseEntity<Object> jawabanUjian(@RequestBody RequestJawabanSiswa request) {
+		return soalService.jawabanUjian(request);
+	}
 
 }

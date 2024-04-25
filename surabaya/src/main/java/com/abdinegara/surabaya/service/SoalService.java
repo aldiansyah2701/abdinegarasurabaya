@@ -3,6 +3,8 @@ package com.abdinegara.surabaya.service;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -131,6 +133,9 @@ public class SoalService {
 
 	@Autowired
 	private UserRepository userRepository;
+
+	@Autowired
+	private JawabanSiswaRepository jawabanSiswaRepository;
 
 
 	private static final String UPLOAD_DIR = "C:\\Users\\Dell3420\\Documents\\abdinegaraexel";
@@ -1200,16 +1205,14 @@ public class SoalService {
 			IntStream.range(0, images.length).forEach(index -> {
 				MultipartFile imageFile = images[index];
 
-				try {
+				/*try {
 					uploadFile(imageFile, "/preview-image/"+imageFile.getOriginalFilename());
 					log.info( "File uploaded successfully!");
-//					return "File uploaded successfully!";
 				} catch (IOException | UploadErrorException e) {
 					log.info("Failed to upload file: " + e.getMessage());
-//					return "Failed to upload file: " + e.getMessage();
 				} catch (DbxException e) {
 					throw new RuntimeException(e);
-				}
+				}*/
 
 				String uploadImagePath = "";
 //				if(directoryBasePath == "" || directoryBasePath.isEmpty()) {
@@ -1677,7 +1680,7 @@ public class SoalService {
 				ujianRepository.deleteById(uuid);
 
 				List<UjianAssetSoal> soals = ujianAssetSoalRepository.findByUuidUjian(uuid);
-				if (soals.isEmpty()) {
+				if (!soals.isEmpty()) {
 					ujianAssetSoalRepository.deleteByUuidUjian(uuid);
 				}
 				return new ResponseEntity<>(response, HttpStatus.OK);
@@ -2005,7 +2008,7 @@ public class SoalService {
 		model.put("notagihan",pembelianUjian.get().getUuid());
 		model.put("email",siswa.getEmail());
 		model.put("deskripsi",ujian.get().getDeskripsi());
-		sendEmail("template-approval-siswa.flth", siswa.getEmail(),"Approval Pembelian Ujian : " + ujian.get().getNamaUjian(),model, null);
+		sendEmail("approval_siswa", siswa.getEmail(),"Approval Pembelian Ujian : " + ujian.get().getNamaUjian(),model, null);
 
 
 		response.setMessage("Data update successfully");
@@ -2124,5 +2127,50 @@ public class SoalService {
 			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 		}
 
+	}
+
+	@Transactional(readOnly = false)
+	public ResponseEntity<Object> jawabanUjian(RequestJawabanSiswa request) {
+		JawabanSiswa jawaban = new JawabanSiswa();
+		jawaban.setJawaban(request.getJawaban());
+		jawaban.setSoalUuid(request.getSoalUuid());
+		jawaban.setUjianUuid(request.getUjianUuid());
+		jawaban.setUserUuid(request.getUserUuid());
+		jawaban.setSoalType(request.getSoalType());
+
+		if (SOALTYPE.SOALHILANG.equals(SOALTYPE.valueOf(request.getSoalType()))){
+			Optional<SoalHilang> byId = soalHilangRepository.findById(request.getSoalUuid());
+			jawaban.setNilai("0");
+		} else if (SOALTYPE.GANJILGENAP.equals(SOALTYPE.valueOf(request.getSoalType()))){
+			Optional<SoalGanjilGenap> byId = soalGanjilGenapRepository.findById(request.getSoalUuid());
+			jawaban.setNilai("0");
+		} else if (SOALTYPE.ESSAY.equals(SOALTYPE.valueOf(request.getSoalType()))){
+			Optional<SoalEssay> byId = soalEssayRepository.findById(request.getSoalUuid());
+
+			jawaban.setNilai("0");
+		} else if (SOALTYPE.PAULI.equals(SOALTYPE.valueOf(request.getSoalType()))){
+			Optional<SoalPauli> byId = soalPauliRepository.findById(request.getSoalUuid());
+
+			jawaban.setNilai("0");
+		} else if (SOALTYPE.PILIHANGANDA.equals(SOALTYPE.valueOf(request.getSoalType()))){
+			Optional<SoalPilihanGanda> byId = soalPilihanGandaRepository.findById(request.getSoalUuid());
+
+			jawaban.setNilai("0");
+		} else if (SOALTYPE.TKD.equals(SOALTYPE.valueOf(request.getSoalType()))){
+			Optional<SoalTKD> byId = soalTKDRepository.findById(request.getSoalUuid());
+
+			jawaban.setNilai("0");
+		}
+
+		jawabanSiswaRepository.save(jawaban);
+		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+	}
+
+	private BigDecimal calculateResult(int soal, int jawabanBenar ){
+		BigDecimal result = BigDecimal.valueOf(100).divide(BigDecimal.valueOf(soal));
+		result = result.multiply(BigDecimal.valueOf(jawabanBenar));
+
+		result = result.setScale(0, RoundingMode.HALF_UP);
+		return result;
 	}
 }
