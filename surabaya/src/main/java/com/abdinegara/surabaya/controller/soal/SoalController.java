@@ -387,4 +387,13 @@ public class SoalController {
 		return soalService.jawabanUjian(request);
 	}
 
+	@PostMapping(value = "/history/jawaban/ujian/siswa")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
+	public ResponseEntity<Object> historyJawabanUjian(
+			@RequestParam("ujianUuid") String ujianUuid,
+			@RequestParam("userUuid") String userUuid
+	) {
+		return soalService.jawabanUjianSiswa(userUuid, ujianUuid);
+	}
+
 }

@@ -2131,6 +2131,14 @@ public class SoalService {
 
 	@Transactional(readOnly = false)
 	public ResponseEntity<Object> jawabanUjian(RequestJawabanSiswaTKD request) {
+		BaseResponse response = new BaseResponse();
+		Optional<JawabanSiswa> jawabanSiswaExist = jawabanSiswaRepository.findByUjianUuidAndSoalUuidAndUserUuidAndSoalType(
+				request.getUjianUuid(), request.getSoalUuid(), request.getUserUuid(), request.getSoalType());
+		if(jawabanSiswaExist.isPresent()){
+			response.setMessage("jawaban already submit");
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
+
 		JawabanSiswa jawaban = new JawabanSiswa();
 		jawaban.setJawaban(request.getJawaban());
 		jawaban.setSoalUuid(request.getSoalUuid());
@@ -2154,6 +2162,7 @@ public class SoalService {
 				}
 			}
 			BigDecimal nilai = calculateResult(jawabanSoal.size(), jawabanBenar);
+			jawaban.setJawabanSoal(soal.getJawaban());
 			jawaban.setNilai(nilai.toString());
 
 		} else if (SOALTYPE.GANJILGENAP.equals(SOALTYPE.valueOf(request.getSoalType()))){
@@ -2170,12 +2179,30 @@ public class SoalService {
 				}
 			}
 			BigDecimal nilai = calculateResult(jawabanSoal.size(), jawabanBenar);
+			jawaban.setJawabanSoal(soal.getJawaban());
 			jawaban.setNilai(nilai.toString());
 
 		} else if (SOALTYPE.ESSAY.equals(SOALTYPE.valueOf(request.getSoalType()))){
 			Optional<SoalEssay> byId = soalEssayRepository.findById(request.getSoalUuid());
+			SoalEssay soal = byId.get();
+			List<String> jawabanSiswa = convertStringToList(request.getJawaban(), "|");
+			List<String> jawabanSoal = convertStringToList(soal.getJawaban(), "|");
 
-			jawaban.setNilai("0");
+			int jawabanBenar = 0;
+			for(int index=0; index<jawabanSoal.size(); index++){
+				List<String> jawabanSoalDetail = convertStringToList(jawabanSoal.get(index), ",");
+
+				for(String data : jawabanSoalDetail){
+					if(data.equalsIgnoreCase(jawabanSiswa.get(index))){
+						jawabanBenar = jawabanBenar + 1;
+						break;
+					}
+				}
+
+			}
+			BigDecimal nilai = calculateResult(jawabanSoal.size(), jawabanBenar);
+			jawaban.setJawabanSoal(soal.getJawaban());
+			jawaban.setNilai(nilai.toString());
 		} else if (SOALTYPE.PAULI.equals(SOALTYPE.valueOf(request.getSoalType()))){
 			Optional<SoalPauli> byId = soalPauliRepository.findById(request.getSoalUuid());
 			SoalPauli soal = byId.get();
@@ -2189,6 +2216,7 @@ public class SoalService {
 				}
 			}
 			BigDecimal nilai = calculateResult(jawabanSoal.size(), jawabanBenar);
+			jawaban.setJawabanSoal(soal.getJawaban());
 			jawaban.setNilai(nilai.toString());
 
 		} else if (SOALTYPE.PILIHANGANDA.equals(SOALTYPE.valueOf(request.getSoalType()))){
@@ -2204,6 +2232,7 @@ public class SoalService {
 				}
 			}
 			BigDecimal nilai = calculateResult(jawabanSoal.size(), jawabanBenar);
+			jawaban.setJawabanSoal(soal.getJawaban());
 			jawaban.setNilai(nilai.toString());
 
 		} else if (SOALTYPE.TKD_TIU.equals(SOALTYPE.valueOf(request.getSoalType()))){
@@ -2219,6 +2248,7 @@ public class SoalService {
 				}
 			}
 			BigDecimal nilai = calculateResult(jawabanSoal.size(), jawabanBenar);
+			jawaban.setJawabanSoal(soal.getJawabanTiu());
 			jawaban.setNilai(nilai.toString());
 
 		}  else if (SOALTYPE.TKD_TKP.equals(SOALTYPE.valueOf(request.getSoalType()))){
@@ -2234,6 +2264,7 @@ public class SoalService {
 				}
 			}
 			BigDecimal nilai = calculateResult(jawabanSoal.size(), jawabanBenar);
+			jawaban.setJawabanSoal(soal.getJawabanTkp());
 			jawaban.setNilai(nilai.toString());
 		} else if (SOALTYPE.TKD_TWK.equals(SOALTYPE.valueOf(request.getSoalType()))){
 			Optional<SoalTKD> byId = soalTKDRepository.findById(request.getSoalUuid());
@@ -2248,12 +2279,14 @@ public class SoalService {
 				}
 			}
 			BigDecimal nilai = calculateResult(jawabanSoal.size(), jawabanBenar);
+			jawaban.setJawabanSoal(soal.getJawabanTwk());
 			jawaban.setNilai(nilai.toString());
 		}
 
 
 		jawabanSiswaRepository.save(jawaban);
-		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		response.setMessage("Success");
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 	private BigDecimal calculateResult(int soal, int jawabanBenar ){
@@ -2268,5 +2301,16 @@ public class SoalService {
 		String[] wordsArray = data.split(bySplit);
 		List<String> wordsList = Arrays.asList(wordsArray);
 		return wordsList;
+	}
+
+	@Transactional(readOnly = false)
+	public ResponseEntity<Object> jawabanUjianSiswa(String userUuid, String ujianUuid) {
+		BaseResponse response = new BaseResponse();
+		List<JawabanSiswa> jawabanUjianSiswa = jawabanSiswaRepository.findByUjianUuidAndUserUuid(
+				ujianUuid,userUuid);
+
+		response.setMessage("Success");
+		response.setData(jawabanUjianSiswa);
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 }

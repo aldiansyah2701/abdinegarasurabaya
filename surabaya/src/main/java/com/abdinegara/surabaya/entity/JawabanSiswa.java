@@ -35,4 +35,7 @@ public class JawabanSiswa extends BaseEntity {
     @Column(name = "soalType")
     private String soalType;
 
+    @Column(name = "jawaban_soal")
+    private String jawabanSoal;
+
 }
