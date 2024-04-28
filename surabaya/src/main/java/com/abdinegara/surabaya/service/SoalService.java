@@ -141,7 +141,7 @@ public class SoalService {
 	private static final String UPLOAD_DIR = "C:\\Users\\Dell3420\\Documents\\abdinegaraexel";
 
 	public enum SOALTYPE {
-		PILIHANGANDA, ESSAY, PAULI, TKD, SOALHILANG, GANJILGENAP
+		PILIHANGANDA, ESSAY, PAULI, TKD, SOALHILANG, GANJILGENAP, TKD_TIU, TKD_TKP, TKD_TWK
 	}
 
 	public enum APPROVAL {
@@ -2130,7 +2130,7 @@ public class SoalService {
 	}
 
 	@Transactional(readOnly = false)
-	public ResponseEntity<Object> jawabanUjian(RequestJawabanSiswa request) {
+	public ResponseEntity<Object> jawabanUjian(RequestJawabanSiswaTKD request) {
 		JawabanSiswa jawaban = new JawabanSiswa();
 		jawaban.setJawaban(request.getJawaban());
 		jawaban.setSoalUuid(request.getSoalUuid());
@@ -2140,27 +2140,117 @@ public class SoalService {
 
 		if (SOALTYPE.SOALHILANG.equals(SOALTYPE.valueOf(request.getSoalType()))){
 			Optional<SoalHilang> byId = soalHilangRepository.findById(request.getSoalUuid());
-			jawaban.setNilai("0");
+
+			SoalHilang soal = byId.get();
+			List<String> jawabanSiswa = convertStringToList(request.getJawaban(), "|");
+			List<String> jawabanSoal = convertStringToList(soal.getJawaban(), "|");
+
+//			IntStream.range(0, jawabanSoal.size()).forEach(index ->{
+//			});
+			int jawabanBenar = 0;
+			for(int index=0; index<jawabanSoal.size(); index++){
+				if(jawabanSoal.get(index).equalsIgnoreCase(jawabanSiswa.get(index))){
+					jawabanBenar = jawabanBenar + 1;
+				}
+			}
+			BigDecimal nilai = calculateResult(jawabanSoal.size(), jawabanBenar);
+			jawaban.setNilai(nilai.toString());
+
 		} else if (SOALTYPE.GANJILGENAP.equals(SOALTYPE.valueOf(request.getSoalType()))){
 			Optional<SoalGanjilGenap> byId = soalGanjilGenapRepository.findById(request.getSoalUuid());
-			jawaban.setNilai("0");
+
+			SoalGanjilGenap soal = byId.get();
+			List<String> jawabanSiswa = convertStringToList(request.getJawaban(), ",");
+			List<String> jawabanSoal = convertStringToList(soal.getJawaban(), ",");
+
+			int jawabanBenar = 0;
+			for(int index=0; index<jawabanSoal.size(); index++){
+				if(jawabanSoal.get(index).equalsIgnoreCase(jawabanSiswa.get(index))){
+					jawabanBenar = jawabanBenar + 1;
+				}
+			}
+			BigDecimal nilai = calculateResult(jawabanSoal.size(), jawabanBenar);
+			jawaban.setNilai(nilai.toString());
+
 		} else if (SOALTYPE.ESSAY.equals(SOALTYPE.valueOf(request.getSoalType()))){
 			Optional<SoalEssay> byId = soalEssayRepository.findById(request.getSoalUuid());
 
 			jawaban.setNilai("0");
 		} else if (SOALTYPE.PAULI.equals(SOALTYPE.valueOf(request.getSoalType()))){
 			Optional<SoalPauli> byId = soalPauliRepository.findById(request.getSoalUuid());
+			SoalPauli soal = byId.get();
+			List<String> jawabanSiswa = convertStringToList(request.getJawaban(), ",");
+			List<String> jawabanSoal = convertStringToList(soal.getJawaban(), ",");
 
-			jawaban.setNilai("0");
+			int jawabanBenar = 0;
+			for(int index=0; index<jawabanSoal.size(); index++){
+				if(jawabanSoal.get(index).equalsIgnoreCase(jawabanSiswa.get(index))){
+					jawabanBenar = jawabanBenar + 1;
+				}
+			}
+			BigDecimal nilai = calculateResult(jawabanSoal.size(), jawabanBenar);
+			jawaban.setNilai(nilai.toString());
+
 		} else if (SOALTYPE.PILIHANGANDA.equals(SOALTYPE.valueOf(request.getSoalType()))){
 			Optional<SoalPilihanGanda> byId = soalPilihanGandaRepository.findById(request.getSoalUuid());
+			SoalPilihanGanda soal = byId.get();
+			List<String> jawabanSiswa = convertStringToList(request.getJawaban(), ",");
+			List<String> jawabanSoal = convertStringToList(soal.getJawaban(), ",");
 
-			jawaban.setNilai("0");
-		} else if (SOALTYPE.TKD.equals(SOALTYPE.valueOf(request.getSoalType()))){
+			int jawabanBenar = 0;
+			for(int index=0; index<jawabanSoal.size(); index++){
+				if(jawabanSoal.get(index).equalsIgnoreCase(jawabanSiswa.get(index))){
+					jawabanBenar = jawabanBenar + 1;
+				}
+			}
+			BigDecimal nilai = calculateResult(jawabanSoal.size(), jawabanBenar);
+			jawaban.setNilai(nilai.toString());
+
+		} else if (SOALTYPE.TKD_TIU.equals(SOALTYPE.valueOf(request.getSoalType()))){
 			Optional<SoalTKD> byId = soalTKDRepository.findById(request.getSoalUuid());
+			SoalTKD soal = byId.get();
+			List<String> jawabanSiswa = convertStringToList(request.getJawabanTIU(), ",");
+			List<String> jawabanSoal = convertStringToList(soal.getJawabanTiu(), ",");
 
-			jawaban.setNilai("0");
+			int jawabanBenar = 0;
+			for(int index=0; index<jawabanSoal.size(); index++){
+				if(jawabanSoal.get(index).equalsIgnoreCase(jawabanSiswa.get(index))){
+					jawabanBenar = jawabanBenar + 1;
+				}
+			}
+			BigDecimal nilai = calculateResult(jawabanSoal.size(), jawabanBenar);
+			jawaban.setNilai(nilai.toString());
+
+		}  else if (SOALTYPE.TKD_TKP.equals(SOALTYPE.valueOf(request.getSoalType()))){
+			Optional<SoalTKD> byId = soalTKDRepository.findById(request.getSoalUuid());
+			SoalTKD soal = byId.get();
+			List<String> jawabanSiswa = convertStringToList(request.getJawabanTKP(), ",");
+			List<String> jawabanSoal = convertStringToList(soal.getJawabanTkp(), ",");
+
+			int jawabanBenar = 0;
+			for(int index=0; index<jawabanSoal.size(); index++){
+				if(jawabanSoal.get(index).equalsIgnoreCase(jawabanSiswa.get(index))){
+					jawabanBenar = jawabanBenar + 1;
+				}
+			}
+			BigDecimal nilai = calculateResult(jawabanSoal.size(), jawabanBenar);
+			jawaban.setNilai(nilai.toString());
+		} else if (SOALTYPE.TKD_TWK.equals(SOALTYPE.valueOf(request.getSoalType()))){
+			Optional<SoalTKD> byId = soalTKDRepository.findById(request.getSoalUuid());
+			SoalTKD soal = byId.get();
+			List<String> jawabanSiswa = convertStringToList(request.getJawabanTWK(), ",");
+			List<String> jawabanSoal = convertStringToList(soal.getJawabanTwk(), ",");
+
+			int jawabanBenar = 0;
+			for(int index=0; index<jawabanSoal.size(); index++){
+				if(jawabanSoal.get(index).equalsIgnoreCase(jawabanSiswa.get(index))){
+					jawabanBenar = jawabanBenar + 1;
+				}
+			}
+			BigDecimal nilai = calculateResult(jawabanSoal.size(), jawabanBenar);
+			jawaban.setNilai(nilai.toString());
 		}
+
 
 		jawabanSiswaRepository.save(jawaban);
 		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -2170,7 +2260,13 @@ public class SoalService {
 		BigDecimal result = BigDecimal.valueOf(100).divide(BigDecimal.valueOf(soal));
 		result = result.multiply(BigDecimal.valueOf(jawabanBenar));
 
-		result = result.setScale(0, RoundingMode.HALF_UP);
+		result = result.setScale(1, RoundingMode.HALF_UP);
 		return result;
+	}
+
+	private List<String> convertStringToList(String data, String bySplit){
+		String[] wordsArray = data.split(bySplit);
+		List<String> wordsList = Arrays.asList(wordsArray);
+		return wordsList;
 	}
 }

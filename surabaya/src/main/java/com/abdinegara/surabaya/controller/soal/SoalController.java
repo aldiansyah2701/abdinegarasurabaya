@@ -383,7 +383,7 @@ public class SoalController {
 
 	@PostMapping(value = "/jawaban/ujian")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
-	public ResponseEntity<Object> jawabanUjian(@RequestBody RequestJawabanSiswa request) {
+	public ResponseEntity<Object> jawabanUjian(@RequestBody RequestJawabanSiswaTKD request) {
 		return soalService.jawabanUjian(request);
 	}
 
