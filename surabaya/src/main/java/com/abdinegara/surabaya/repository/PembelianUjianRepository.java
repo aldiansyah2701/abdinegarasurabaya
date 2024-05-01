@@ -18,6 +18,8 @@ public interface PembelianUjianRepository extends CrudRepository<PembelianUjian,
     Page<PembelianUjian> findByUserUuid(String userUuid, Pageable pageable);
     Page<PembelianUjian> findAll(Pageable pageable);
     Optional<PembelianUjian> findByUjianUuidAndUserUuid(String ujianUuid, String userUuid);
+
+    Optional<PembelianUjian> findByUjianUuid(String ujianUuid);
     Page<PembelianUjian> findByApproval(String approval, Pageable pageable);
 
 }

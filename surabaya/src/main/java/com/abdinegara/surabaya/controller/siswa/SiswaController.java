@@ -33,8 +33,8 @@ public class SiswaController {
 //	}
 	
 	@PostMapping(path = "/quote/{type}", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE } )
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
-	public ResponseEntity<Object> getQuote(
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
+	public ResponseEntity<Object> createQuote(
 			@PathVariable("type") String type,
 			@RequestParam("title") String title,
 			@RequestParam("quote") String quote,
@@ -42,22 +42,30 @@ public class SiswaController {
 			@RequestParam(name = "file-video", required = false) MultipartFile filesVideo) {
 		return siswaService.createQuote(type, title,quote,fileGambar,filesVideo);
 	}
+
+	@GetMapping(value = "/quote/{type}")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
+	public ResponseEntity<Object> getQuote(
+			@PathVariable("type") String type
+	) {
+		return siswaService.getQuote(type);
+	}
 	
 	@GetMapping(value = "/list/{type}")
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
 	public ResponseEntity<Object> getListSiswa(@PathVariable("type") String type, Pageable pageable) {
 		return siswaService.getSiswa(type, pageable);
 	}
 	
 	@GetMapping(value = "/detail/{uuid}")
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
 	public ResponseEntity<Object> getDetailSiswa(@PathVariable("uuid") String uuid) {
 		return siswaService.getDetailSiswa(uuid);
 	}
 	
 
 	@GetMapping(value = "/pemebelian-soal/{uuid}")
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
 	public ResponseEntity<Object> getPembelianSoal(@PathVariable("uuid") String uuid, Pageable pageable) {
 		return siswaService.getPembelianSoal(uuid, pageable);
 	}

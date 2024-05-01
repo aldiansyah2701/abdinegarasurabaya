@@ -190,6 +190,17 @@ public class SiswaService {
 		
 	}
 
+	public ResponseEntity<Object> getQuote(String type){
+		BaseResponse response = new BaseResponse();
+		Optional<QuoteSiswa> dataExist = quoteSiswaRepository.findByTitle(type);
+
+		if(dataExist.isPresent()){
+			response.setData(dataExist.get());
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+		return new ResponseEntity<>("Data not found", HttpStatus.BAD_REQUEST);
+	}
+
 	public ResponseEntity<Object> getSiswa(String type, Pageable pageable) {
 		BaseResponse response = new BaseResponse();
 
@@ -250,9 +261,9 @@ public class SiswaService {
 		BaseResponse response = new BaseResponse();
 
 		try {
-			Optional<Siswa> detailSiswa = siswaRepository.findById(uuid);
-			if(detailSiswa.isPresent()) {
-				Siswa getDetailSiswa = modifyData(detailSiswa.get());
+			Siswa detailSiswa = siswaRepository.findByUserUuid(uuid);
+			if(detailSiswa != null) {
+				Siswa getDetailSiswa = modifyData(detailSiswa);
 				
 				response.setMessage("Data found successfully");
 		        response.setData(getDetailSiswa);

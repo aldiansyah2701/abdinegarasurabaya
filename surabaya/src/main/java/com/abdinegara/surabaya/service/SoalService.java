@@ -1677,6 +1677,12 @@ public class SoalService {
 			response.setMessage("Delete data successfully");
 			Optional<Ujian> dataUjian = ujianRepository.findById(uuid);
 			if (dataUjian.isPresent()) {
+				Optional<PembelianUjian> sudahBeliUjian = pembelianUjianRepository.findByUjianUuid(uuid);
+				if(sudahBeliUjian.isPresent()){
+					response.setMessage("Data ujian has been purchased");
+					return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+				}
+
 				ujianRepository.deleteById(uuid);
 
 				List<UjianAssetSoal> soals = ujianAssetSoalRepository.findByUuidUjian(uuid);
