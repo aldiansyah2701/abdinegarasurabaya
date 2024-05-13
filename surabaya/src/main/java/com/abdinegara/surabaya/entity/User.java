@@ -1,6 +1,7 @@
 package com.abdinegara.surabaya.entity;
 
 import java.io.Serializable;
+import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -50,5 +51,18 @@ public class User extends BaseEntity implements Serializable{
 
 	@Column
 	private String adminEmaill;
+
+	@Column
+	private String otp;
+
+	@Column
+	private String otpStatus;
+
+	@Column
+	private Date otpExpired;
+
+	public enum STATUS{
+		NEW, USED, EXPIRED
+	}
 
 }

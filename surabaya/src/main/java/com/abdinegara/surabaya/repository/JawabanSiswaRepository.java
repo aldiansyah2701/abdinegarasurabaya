@@ -14,7 +14,11 @@ public interface JawabanSiswaRepository extends CrudRepository<JawabanSiswa, Str
 
     Page<JawabanSiswa> findAll(Pageable pageable);
 
-    Optional<JawabanSiswa> findByUjianUuidAndSoalUuidAndUserUuidAndSoalType(String ujianUuid, String soalUuid, String userUuid, String soalType);
+    Optional<JawabanSiswa> findFirstByUjianUuidAndSoalUuidAndUserUuidAndSoalTypeOrderByCreatedDateDesc(String ujianUuid, String soalUuid, String userUuid, String soalType);
 
     List<JawabanSiswa> findByUjianUuidAndUserUuid(String ujianUuid, String userUuid);
+
+    List<JawabanSiswa> findByUserUuid(String userUuid);
+
+    List<JawabanSiswa> findByUserUuidAndSoalTypeStartsWith(String userUuid, String soalType);
 }

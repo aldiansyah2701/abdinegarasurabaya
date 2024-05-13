@@ -3,10 +3,7 @@ package com.abdinegara.surabaya.service;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import javax.servlet.ServletContext;
 
@@ -276,5 +273,16 @@ public class SiswaService {
 			response.setMessage(e.getMessage());
 			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 		}
+	}
+
+	public ResponseEntity<Object> getInfoSiswa() {
+		BaseResponse response = new BaseResponse();
+		Map<String, Object> data = new HashMap<>();
+		data.put("countSiswa",siswaRepository.findCountSiswa());
+		data.put("countPembelianUjian", siswaRepository.findCountPembelianUjian());
+
+		response.setData(data);
+
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 }

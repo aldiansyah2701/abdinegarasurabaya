@@ -1,5 +1,6 @@
 package com.abdinegara.surabaya.controller.user;
 
+import com.abdinegara.surabaya.message.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -16,9 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.abdinegara.surabaya.message.RequestLogin;
-import com.abdinegara.surabaya.message.RequestRegisterUser;
-import com.abdinegara.surabaya.message.RequestUpdateUser;
 import com.abdinegara.surabaya.message.RequestRegisterUser.TYPE;
 import com.abdinegara.surabaya.service.UserService;
 
@@ -99,5 +97,20 @@ public class UserController {
 	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
 	public ResponseEntity<Object> chekToken() {
 		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
+	@PostMapping(path = "/change-password", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Object> changePasswordUser(@RequestBody RequestChangePassword request) {
+		return userService.changePasswordUser(request);
+	}
+
+	@PostMapping(path = "/forgot-password", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Object> reqeustForgotPasswordUser(@RequestBody RequestForgotPassword request) {
+		return userService.reqeustForgotPasswordUser(request);
+	}
+
+	@PostMapping(path = "/forgot-change-password", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Object> updateForgotPasswordUser(@RequestBody RequestUpdateForgotPassword request) {
+		return userService.updateForgotPasswordUser(request);
 	}
 }

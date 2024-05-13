@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html>
+
+  <head />
+  <div>
+    <div style="background:#ffffff;background-color:#ffffff;margin:0px auto;max-width:600px;"> 
+    <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;background-color:#ffffff;width:100%;"> 
+     <tbody> 
+      <tr> 
+       <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:0px;text-align:center;"> <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="57bwehvsk-0-outlook" style="vertical-align:top;width:600px;" ><![endif]--> 
+        <div class="mj-column-per-100 mj-outlook-group-fix 57bwehvsk-0" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"> 
+         <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"> 
+          <tbody> 
+           <tr> 
+            <td style="background-color:#FFFFFF;vertical-align:top;padding:0px;padding-top:16px;padding-right:16px;padding-bottom:16px;padding-left:16px;"> 
+             <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="" width="100%"> 
+              <tbody> 
+               <tr> 
+                <td align="left" class="c__text" style="font-size:0px;padding:0px;word-break:break-word;"> 
+                 <div style="font-family:Arial;font-size:18px;line-height:1.5;text-align:left;color:#4A4A4A;">
+                  <h2><strong>Hi ${fullName}</strong></h2>
+                 </div> </td> 
+               </tr> 
+              </tbody> 
+             </table> </td> 
+           </tr> 
+          </tbody> 
+         </table> 
+        </div> <!--[if mso | IE]></td></tr></table><![endif]--> </td> 
+      </tr> 
+     </tbody> 
+    </table> 
+   </div>
+	<div style="background:#ffffff;background-color:#ffffff;margin:0px auto;max-width:600px;"> 
+    <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;background-color:#ffffff;width:100%;"> 
+     <tbody> 
+      <tr> 
+       <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:0px;text-align:center;"> <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="mt__v9fmjuh2e-0-outlook" style="vertical-align:top;width:600px;" ><![endif]--> 
+        <div class="mj-column-per-100 mj-outlook-group-fix mt__v9fmjuh2e-0" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"> 
+         <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"> 
+          <tbody> 
+           <tr> 
+            <td style="background-color:#FFFFFF;vertical-align:top;padding:0px;padding-top:16px;padding-right:16px;padding-bottom:16px;padding-left:16px;"> 
+             <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="" width="100%"> 
+              <tbody> 
+               <tr> 
+                <td align="left" class="c__text" style="font-size:0px;padding:0px;word-break:break-word;"> 
+                 <div style="font-family:Arial;font-size:17px;line-height:1.5;text-align:left;color:#4A4A4A;">
+                  <p style="margin-left:0in;">${body}</p>
+                  <p style="margin:24px 0"> <span id="otpCode" style="padding:8px 24px;border-radius:4px;border:1px solid #dee2ee;letter-spacing:4px;font-size:25px;font-weight:600;background-color:#f7f7f7"> ${otpCode} </span> </p>
+                 </div> </td> 
+               </tr> 
+              </tbody> 
+             </table> </td> 
+           </tr> 
+          </tbody> 
+         </table> 
+        </div> <!--[if mso | IE]></td></tr></table><![endif]--> </td> 
+      </tr> 
+     </tbody> 
+    </table> 
+   </div>
+   <div style="background:#ffffff;background-color:#ffffff;margin:0px auto;max-width:600px;"> 
+    <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;background-color:#ffffff;width:100%;"> 
+     <tbody> 
+      <tr> 
+       <td style="direction:ltr;font-size:0px;padding:16px;text-align:center;"> <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:568px;" ><![endif]--> 
+        <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"> 
+         <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"> 
+          <tbody> 
+           <tr> 
+            <td align="center" style="font-size:0px;padding:5px 0 5px 0;word-break:break-word;"> 
+             <div style="font-family:Helvetica, Arial, sans-serif;font-size:12px;line-height:1.4;text-align:center;color:#999999;">
+              PT Privat Abdinegara Surabaya
+             </div> </td> 
+           </tr> 
+           <tr> 
+            <td align="center" style="font-size:0px;padding:0px;word-break:break-word;"> 
+             <div style="font-family:Helvetica, Arial, sans-serif;font-size:12px;line-height:1.4;text-align:center;color:#999999;">
+              Intiland lt. 16, Jl. Prof.Dr.Satrio Kav.18 Kuningan City, Jakarta 12940, Indonesia, Jakarta, Indonesia
+             </div> </td> 
+           </tr> 
+           <tr> 
+            <td align="center" style="font-size:0px;padding:5px 0 5px 0;word-break:break-word;"> 
+             <div style="font-family:Helvetica, Arial, sans-serif;font-size:12px;line-height:1.4;text-align:center;color:#999999;">
+              1500940
+             </div> </td> 
+           </tr> 
+           <tr> 
+            
+           </tr> 
+           <tr> 
+            <td align="center" class="footer-logo" style="font-size:0px;padding:5px 0 5px 0;word-break:break-word;"> 
+             <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;"> 
+              <tbody> 
+               <tr> 
+                <td> <a href="www.axa.co.id" target="_blank" style="color: inherit;"> 
+				<!--<img alt="logoaxa-area200px.1537415211425" height="auto" src="https://axa.co.id/o/axaone-theme/images/logo-axa.png" > </a> </td> -->
+               </tr> 
+              </tbody> 
+             </table> </td> 
+           </tr> 
+           
+          </tbody> 
+         </table> 
+        </div> <!--[if mso | IE]></td></tr></table><![endif]--> </td> 
+      </tr> 
+     </tbody> 
+    </table> 
+   </div>
+</div>
+</html>

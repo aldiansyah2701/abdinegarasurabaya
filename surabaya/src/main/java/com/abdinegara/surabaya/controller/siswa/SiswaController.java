@@ -69,6 +69,13 @@ public class SiswaController {
 	public ResponseEntity<Object> getPembelianSoal(@PathVariable("uuid") String uuid, Pageable pageable) {
 		return siswaService.getPembelianSoal(uuid, pageable);
 	}
-	
+
+	@GetMapping(value = "/info")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> getInfoSiswa() {
+		return siswaService.getInfoSiswa();
+	}
+
+
 
 }

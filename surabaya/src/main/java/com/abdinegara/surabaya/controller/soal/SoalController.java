@@ -155,13 +155,13 @@ public class SoalController {
 	}
 	
 	@GetMapping(value = "/list/video")
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
 	public ResponseEntity<Object> getListVideo(Pageable pageable) {
 		return soalService.getVideos(pageable);
 	}
 	
 	@GetMapping(value = "/detail/video/{uuid}")
-	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
 	public ResponseEntity<Object> getDetailVideo(@PathVariable("uuid") String uuid) {
 		return soalService.getVideo(uuid);
 	}
@@ -314,8 +314,9 @@ public class SoalController {
 	
 	@GetMapping(value = "/detail/ujian/{uuid}")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
-	public ResponseEntity<Object> getDetailUjian(@PathVariable("uuid") String uuid) {
-		return soalService.getDetailUjian(uuid);
+	public ResponseEntity<Object> getDetailUjian(@PathVariable("uuid") String uuid,
+												 @RequestParam("userUuid") String userUuid) {
+		return soalService.getDetailUjian(uuid, userUuid);
 	}
 	
 	@DeleteMapping(value = "/delete/ujian/{uuid}")
@@ -343,10 +344,22 @@ public class SoalController {
 		return soalService.beliUjian(request);
 	}
 
+	@GetMapping(value = "/total-amount/beli/ujian")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
+	public ResponseEntity<Object> getTotalAmountBeliUjian() {
+		return soalService.totalBeliUjian();
+	}
+
 	@GetMapping(value = "/history/approval/ujian")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<Object> listApprovalBeliUjian(@RequestParam(name = "approval", required = false) SoalService.APPROVAL approval, Pageable pageable) {
 		return soalService.listApprovalBeliUjian(approval, pageable);
+	}
+
+	@GetMapping(value = "/detail/approval/ujian/{uuid}")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public ResponseEntity<Object> detailApprovalBeliUjian(@PathVariable("uuid") String uuid) {
+		return soalService.detailApprovalBeliUjian(uuid);
 	}
 
 	@GetMapping(value = "/history-siswa/beli/ujian")
@@ -394,6 +407,15 @@ public class SoalController {
 			@RequestParam("userUuid") String userUuid
 	) {
 		return soalService.jawabanUjianSiswa(userUuid, ujianUuid);
+	}
+
+	@PostMapping(value = "/history/jawaban/all-ujian/siswa")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SISWA')")
+	public ResponseEntity<Object> historyJawabanUjianAll(
+			@RequestParam("userUuid") String userUuid,
+			@RequestParam(name = "soalType", required = false) String soalType
+	) {
+		return soalService.jawabanUjianAllSiswa(userUuid, soalType);
 	}
 
 }

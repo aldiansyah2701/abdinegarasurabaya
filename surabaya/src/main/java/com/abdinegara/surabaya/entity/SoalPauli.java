@@ -1,10 +1,6 @@
 package com.abdinegara.surabaya.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import org.hibernate.annotations.GenericGenerator;
 
@@ -40,7 +36,8 @@ public class SoalPauli extends BaseEntity{
 	
 	@Column(name = "jenis")
 	private String jenis;
-	
-	
+
+	@Transient
+	private String nilai;
 
 }

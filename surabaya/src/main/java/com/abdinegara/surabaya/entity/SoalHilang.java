@@ -38,4 +38,7 @@ public class SoalHilang extends BaseEntity{
 
     @Column(name = "jenis")
     private String jenis;
+
+    @Transient
+    private String nilai;
 }

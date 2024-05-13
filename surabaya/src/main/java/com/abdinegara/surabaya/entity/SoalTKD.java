@@ -65,4 +65,13 @@ public class SoalTKD extends BaseEntity {
 	@Transient
 	private List<SoalAssetImage> assetImageTkp;
 
+	@Transient
+	private String nilaiTwk;
+
+	@Transient
+	private String nilaiTiu;
+
+	@Transient
+	private String nilaiTkp;
+
 }

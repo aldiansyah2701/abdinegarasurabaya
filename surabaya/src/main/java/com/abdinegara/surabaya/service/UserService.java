@@ -1,8 +1,10 @@
 package com.abdinegara.surabaya.service;
 
+import java.security.SecureRandom;
 import java.util.*;
 
 import com.abdinegara.surabaya.entity.*;
+import com.abdinegara.surabaya.message.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.abdinegara.surabaya.entity.Role.ROLE;
 import com.abdinegara.surabaya.kernel.JwtTokenProvider;
-import com.abdinegara.surabaya.message.BaseResponse;
-import com.abdinegara.surabaya.message.RequestRegisterUser;
 import com.abdinegara.surabaya.message.RequestRegisterUser.TYPE;
-import com.abdinegara.surabaya.message.RequestUpdateUser;
-import com.abdinegara.surabaya.message.ResponseCreateToken;
-import com.abdinegara.surabaya.message.ResponseGetAllUsers;
 import com.abdinegara.surabaya.repository.RoleRepository;
 import com.abdinegara.surabaya.repository.SiswaRepository;
 import com.abdinegara.surabaya.repository.UserRepository;
@@ -49,6 +46,9 @@ public class UserService {
 	
 	@Autowired
 	private SiswaRepository siswaRepository;
+
+	@Autowired
+	private SoalService soalService;
 	
 	public ResponseEntity<Object> loginUser(String userName, String password) {
 		BaseResponse response = new BaseResponse();
@@ -236,6 +236,156 @@ public class UserService {
 			EncryptDecryptModal decryptEncrypt = new EncryptDecryptModal();
 			user.setPasswordData(decryptEncrypt.setSensitiveData(data.getPassword()));
 			user = userRepository.save(user);
+
+			response.setMessage(BaseResponse.SUCCESS);
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+		response.setMessage(BaseResponse.NOT_FOUND);
+		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+
+	}
+
+	@Transactional(readOnly = false)
+	public ResponseEntity<Object> updateForgotPasswordUser(RequestUpdateForgotPassword data) {
+		BaseResponse response = new BaseResponse();
+		User user = userRepository.findByName(data.getUsername());
+
+		if (user != null) {
+			String validOtp = chekOtp(data.getOtp(), user);
+			if(validOtp.equals("success")){
+				user.setActive(true);
+				user.setPassword(passwordEncoder.encode(data.getPassword()));
+				EncryptDecryptModal decryptEncrypt = new EncryptDecryptModal();
+				user.setPasswordData(decryptEncrypt.setSensitiveData(data.getPassword()));
+				user.setOtpStatus(User.STATUS.USED.toString());
+				user = userRepository.save(user);
+
+				response.setMessage(BaseResponse.SUCCESS);
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			} else {
+				response.setMessage(validOtp);
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
+
+
+		}
+		response.setMessage(BaseResponse.NOT_FOUND);
+		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+
+	}
+
+	String chekOtp(String otp, User user){
+		Date currentDate = new Date();
+		if(currentDate.before(user.getOtpExpired())){
+			if(user.getOtpStatus().equals(User.STATUS.NEW.toString())){
+				if(user.getOtp().equals(otp)){
+					return "success";
+				} else {
+					return "OTP not match";
+				}
+			} else {
+				return "OTP have been used";
+			}
+		} else {
+			return "OTP expired";
+		}
+	}
+
+	@Transactional(readOnly = false)
+	public ResponseEntity<Object> reqeustForgotPasswordUser(RequestForgotPassword data) {
+		BaseResponse response = new BaseResponse();
+		User user = userRepository.findByName(data.getUsername());
+
+		if (user != null) {
+
+			if(user.getUserType().equals("ADMIN")){
+				if(user.getAdminEmaill() == null){
+					response.setMessage("Email not found, Please contact administrator");
+					return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+				}
+					Map<String, Object> model = new HashMap<>();
+					model.put("fullName",user.getName());
+					model.put("body","OTP Forgot password");
+					String otp = generateOTP();
+					user.setOtp(otp);
+					model.put("otpCode",otp);
+
+					soalService.sendEmail("otp", user.getAdminEmaill(),"OTP Forgot password",model, null);
+
+			} else {
+				Siswa siswa = siswaRepository.findByUserUuid(user.getUuid());
+				if(siswa.getEmail() == null){
+					response.setMessage("Email not found, Please contact administrator");
+					return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+				}
+
+				Map<String, Object> model = new HashMap<>();
+				model.put("fullName",user.getName());
+				model.put("body","OTP Forgot password");
+				String otp = generateOTP();
+				user.setOtp(otp);
+				model.put("otpCode",otp);
+
+				soalService.sendEmail("otp", siswa.getEmail(),"OTP Forgot password",model, null);
+
+			}
+
+			user.setOtpStatus(User.STATUS.NEW.toString());
+			user.setOtpExpired(datePlusMinute(5));
+			userRepository.save(user);
+			response.setMessage(BaseResponse.SUCCESS);
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+		response.setMessage(BaseResponse.NOT_FOUND);
+		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+
+	}
+
+	private String generateOTP() {
+		SecureRandom secureRandom = new SecureRandom();
+		// Generate a random six-digit number
+		int min = 100000; // Minimum six-digit number
+		int max = 999999; // Maximum six-digit number
+		int randomNum = secureRandom.nextInt(max - min + 1) + min;
+		return String.format("%06d", randomNum);
+	}
+
+	public Date datePlusMinute(int minutesToAdd) {
+		Date currentDate = new Date();
+
+		// Create a Calendar instance and set it to the current date
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(currentDate);
+
+		// Add minutes to the date
+		calendar.add(Calendar.MINUTE, minutesToAdd);
+
+		// Get the updated date
+		Date updatedDate = calendar.getTime();
+
+		return updatedDate;
+	}
+
+	@Transactional(readOnly = false)
+	public ResponseEntity<Object> changePasswordUser(RequestChangePassword data) {
+		BaseResponse response = new BaseResponse();
+		User user = userRepository.findByName(data.getUsername());
+
+		if (user != null) {
+			EncryptDecryptModal decryptEncrypt = new EncryptDecryptModal();
+			String passwordData = user.getPasswordData();
+			String decryptPass = decryptEncrypt.getSensitiveData(passwordData);
+
+			if(decryptPass.equals(data.getCurrentPassword())){
+				user.setActive(true);
+				user.setPassword(passwordEncoder.encode(data.getNewPassword()));
+
+				user.setPasswordData(decryptEncrypt.setSensitiveData(data.getNewPassword()));
+				user = userRepository.save(user);
+			} else {
+				response.setMessage("Wrong current password");
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
 
 			response.setMessage(BaseResponse.SUCCESS);
 			return new ResponseEntity<>(response, HttpStatus.OK);

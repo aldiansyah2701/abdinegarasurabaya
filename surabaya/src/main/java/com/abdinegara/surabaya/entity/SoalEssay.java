@@ -47,4 +47,7 @@ public class SoalEssay extends BaseEntity{
 	@Transient
 	private List<SoalAssetImage> assetImage;
 
+	@Transient
+	private String nilai;
+
 }

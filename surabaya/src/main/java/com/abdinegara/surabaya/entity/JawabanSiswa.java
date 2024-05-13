@@ -38,4 +38,10 @@ public class JawabanSiswa extends BaseEntity {
     @Column(name = "jawaban_soal")
     private String jawabanSoal;
 
+    @Transient
+    private String soalName;
+
+    @Transient
+    private String ujianName;
+
 }

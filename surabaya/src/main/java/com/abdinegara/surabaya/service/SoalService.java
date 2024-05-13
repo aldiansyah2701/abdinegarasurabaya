@@ -1580,7 +1580,7 @@ public class SoalService {
 
 		}
 		
-		public ResponseEntity<Object> getDetailUjian(String uuid) {
+		public ResponseEntity<Object> getDetailUjian(String uuid, String userUuid) {
 			BaseResponse response = new BaseResponse();
 			response.setMessage("Data found successfully");
 			Optional<Ujian> dataUjian = ujianRepository.findById(uuid);
@@ -1604,6 +1604,11 @@ public class SoalService {
 							List<SoalAssetImage> assetImages = soalAssetImageRepository.findByUuidSoal(soal.getUuidSoal());
 							SoalPilihanGanda dataResp = data.get();
 							dataResp.setAssetImage(assetImages);
+
+							Optional<JawabanSiswa> jawabanSiswaExist = jawabanSiswaRepository.findFirstByUjianUuidAndSoalUuidAndUserUuidAndSoalTypeOrderByCreatedDateDesc(
+									uuid, dataResp.getUuid(), userUuid, SOALTYPE.PILIHANGANDA.toString());
+							dataResp.setNilai(jawabanSiswaExist.isPresent() ? jawabanSiswaExist.get().getNilai() : null);
+
 							detailPilihanGandas.add(dataResp);
 							
 						}
@@ -1614,13 +1619,22 @@ public class SoalService {
 							SoalEssay dataResp = data.get();
 							dataResp.setAssetImage(assetImages);
 
+							Optional<JawabanSiswa> jawabanSiswaExist = jawabanSiswaRepository.findFirstByUjianUuidAndSoalUuidAndUserUuidAndSoalTypeOrderByCreatedDateDesc(
+									uuid, dataResp.getUuid(), userUuid, SOALTYPE.ESSAY.toString());
+							dataResp.setNilai(jawabanSiswaExist.isPresent() ? jawabanSiswaExist.get().getNilai() : null);
+
 							detailEssays.add(dataResp);
 							
 						}
 					} else if ("PAULI".equals(soal.getSoalType())) {
 						Optional<SoalPauli> data = soalPauliRepository.findById(soal.getUuidSoal());
 						if (data.isPresent()) {
-							detailPaulis.add(data.get());
+							SoalPauli dataResp = data.get();
+							Optional<JawabanSiswa> jawabanSiswaExist = jawabanSiswaRepository.findFirstByUjianUuidAndSoalUuidAndUserUuidAndSoalTypeOrderByCreatedDateDesc(
+									uuid, dataResp.getUuid(), userUuid, SOALTYPE.PAULI.toString());
+							dataResp.setNilai(jawabanSiswaExist.isPresent() ? jawabanSiswaExist.get().getNilai() : null);
+
+							detailPaulis.add(dataResp);
 						}
 					} else if ("VIDEO".equals(soal.getSoalType())) {
 						Optional<PembelajaranVideo> data = pembelajaranVideoRepository.findById(soal.getUuidSoal());
@@ -1638,18 +1652,41 @@ public class SoalService {
 							dataResp.setAssetImageTiu(assetImagesTiu);
 							dataResp.setAssetImageTkp(assetImagesTkp);
 
+							Optional<JawabanSiswa> jawabanTwkExist = jawabanSiswaRepository.findFirstByUjianUuidAndSoalUuidAndUserUuidAndSoalTypeOrderByCreatedDateDesc(
+									uuid, dataResp.getUuid(), userUuid, SOALTYPE.TKD_TWK.toString());
+							dataResp.setNilaiTwk(jawabanTwkExist.isPresent() ? jawabanTwkExist.get().getNilai() : null);
+
+							Optional<JawabanSiswa> jawabanTiuExist = jawabanSiswaRepository.findFirstByUjianUuidAndSoalUuidAndUserUuidAndSoalTypeOrderByCreatedDateDesc(
+									uuid, dataResp.getUuid(), userUuid, SOALTYPE.TKD_TIU.toString());
+							dataResp.setNilaiTiu(jawabanTiuExist.isPresent() ? jawabanTiuExist.get().getNilai() : null);
+
+							Optional<JawabanSiswa> jawabanTkpExist = jawabanSiswaRepository.findFirstByUjianUuidAndSoalUuidAndUserUuidAndSoalTypeOrderByCreatedDateDesc(
+									uuid, dataResp.getUuid(), userUuid, SOALTYPE.TKD_TKP.toString());
+							dataResp.setNilaiTkp(jawabanTkpExist.isPresent() ? jawabanTkpExist.get().getNilai() : null);
+
+
 							detailTKDs.add(dataResp);
 							
 						}
 					} else if ("SOALHILANG".equals(soal.getSoalType())) {
 						Optional<SoalHilang> data = soalHilangRepository.findById(soal.getUuidSoal());
 						if (data.isPresent()) {
-							detailSoalHilangs.add(data.get());
+							SoalHilang dataResp = data.get();
+							Optional<JawabanSiswa> jawabanSiswaExist = jawabanSiswaRepository.findFirstByUjianUuidAndSoalUuidAndUserUuidAndSoalTypeOrderByCreatedDateDesc(
+									uuid, dataResp.getUuid(), userUuid, SOALTYPE.SOALHILANG.toString());
+							dataResp.setNilai(jawabanSiswaExist.isPresent() ? jawabanSiswaExist.get().getNilai() : null);
+
+							detailSoalHilangs.add(dataResp);
 						}
 					} else if ("GANJILGENAP".equals(soal.getSoalType())) {
 						Optional<SoalGanjilGenap> data = soalGanjilGenapRepository.findById(soal.getUuidSoal());
 						if (data.isPresent()) {
-							detailGanjilGenaps.add(data.get());
+							SoalGanjilGenap dataResp = data.get();
+							Optional<JawabanSiswa> jawabanSiswaExist = jawabanSiswaRepository.findFirstByUjianUuidAndSoalUuidAndUserUuidAndSoalTypeOrderByCreatedDateDesc(
+									uuid, dataResp.getUuid(), userUuid, SOALTYPE.GANJILGENAP.toString());
+							dataResp.setNilai(jawabanSiswaExist.isPresent() ? jawabanSiswaExist.get().getNilai() : null);
+
+							detailGanjilGenaps.add(dataResp);
 						}
 					}
 				});
@@ -1839,7 +1876,9 @@ public class SoalService {
 				mailContent = getMailOtpContentFromTemplate(model, "template-pelunasan-admin.flth");
 			} else if ("approval_siswa".equals(type)) {
 				mailContent = getMailOtpContentFromTemplate(model, "template-approval-siswa.flth");
-			} else {
+			}  else if ("otp".equals(type)) {
+				mailContent = getMailOtpContentFromTemplate(model, "template-otpMail.flth");
+			}else {
 				mailContent = getMailOtpContentFromTemplate(model, "template.flth");
 			}
 
@@ -1963,6 +2002,21 @@ public class SoalService {
 	}
 
 	@Transactional(readOnly = false)
+	public ResponseEntity<Object> detailApprovalBeliUjian(String uuid) {
+		BaseResponse response = new BaseResponse();
+
+		Optional<PembelianUjian> pembelianUjian = pembelianUjianRepository.findById(uuid);
+
+		PembelianUjian pembelianUjianData = pembelianUjian.get();
+		pembelianUjianData = modifyData(pembelianUjianData);
+
+
+		response.setData(pembelianUjianData);
+		response.setMessage("Data found successfully");
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@Transactional(readOnly = false)
 	public ResponseEntity<Object> historyBeliUjian(String userUuid, Pageable pageable) {
 		BaseResponse response = new BaseResponse();
 
@@ -2018,6 +2072,26 @@ public class SoalService {
 
 
 		response.setMessage("Data update successfully");
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@Transactional(readOnly = false)
+	public ResponseEntity<Object> totalBeliUjian() {
+		BaseResponse response = new BaseResponse();
+
+		List<PembelianUjian> pembelianUjian =  pembelianUjianRepository.findAll();
+
+		BigDecimal total = BigDecimal.ZERO;
+		for(PembelianUjian data : pembelianUjian){
+			Optional<Ujian> ujian = ujianRepository.findById(data.getUjianUuid());
+			BigDecimal amount = new BigDecimal(ujian.get().getHarga());
+
+			total = total.add(amount);
+		}
+
+		response.setData(total);
+
+		response.setMessage("Data found successfully");
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
@@ -2138,7 +2212,7 @@ public class SoalService {
 	@Transactional(readOnly = false)
 	public ResponseEntity<Object> jawabanUjian(RequestJawabanSiswaTKD request) {
 		BaseResponse response = new BaseResponse();
-		Optional<JawabanSiswa> jawabanSiswaExist = jawabanSiswaRepository.findByUjianUuidAndSoalUuidAndUserUuidAndSoalType(
+		Optional<JawabanSiswa> jawabanSiswaExist = jawabanSiswaRepository.findFirstByUjianUuidAndSoalUuidAndUserUuidAndSoalTypeOrderByCreatedDateDesc(
 				request.getUjianUuid(), request.getSoalUuid(), request.getUserUuid(), request.getSoalType());
 		if(jawabanSiswaExist.isPresent()){
 			response.setMessage("jawaban already submit");
@@ -2191,8 +2265,8 @@ public class SoalService {
 		} else if (SOALTYPE.ESSAY.equals(SOALTYPE.valueOf(request.getSoalType()))){
 			Optional<SoalEssay> byId = soalEssayRepository.findById(request.getSoalUuid());
 			SoalEssay soal = byId.get();
-			List<String> jawabanSiswa = convertStringToList(request.getJawaban(), "|");
-			List<String> jawabanSoal = convertStringToList(soal.getJawaban(), "|");
+			List<String> jawabanSiswa = convertStringToList(request.getJawaban(), ",");
+			List<String> jawabanSoal = convertStringToList(soal.getJawaban(), "\\|");
 
 			int jawabanBenar = 0;
 			for(int index=0; index<jawabanSoal.size(); index++){
@@ -2256,6 +2330,7 @@ public class SoalService {
 			BigDecimal nilai = calculateResult(jawabanSoal.size(), jawabanBenar);
 			jawaban.setJawabanSoal(soal.getJawabanTiu());
 			jawaban.setNilai(nilai.toString());
+			jawaban.setJawaban(request.getJawabanTIU());
 
 		}  else if (SOALTYPE.TKD_TKP.equals(SOALTYPE.valueOf(request.getSoalType()))){
 			Optional<SoalTKD> byId = soalTKDRepository.findById(request.getSoalUuid());
@@ -2272,6 +2347,7 @@ public class SoalService {
 			BigDecimal nilai = calculateResult(jawabanSoal.size(), jawabanBenar);
 			jawaban.setJawabanSoal(soal.getJawabanTkp());
 			jawaban.setNilai(nilai.toString());
+			jawaban.setJawaban(request.getJawabanTKP());
 		} else if (SOALTYPE.TKD_TWK.equals(SOALTYPE.valueOf(request.getSoalType()))){
 			Optional<SoalTKD> byId = soalTKDRepository.findById(request.getSoalUuid());
 			SoalTKD soal = byId.get();
@@ -2287,16 +2363,19 @@ public class SoalService {
 			BigDecimal nilai = calculateResult(jawabanSoal.size(), jawabanBenar);
 			jawaban.setJawabanSoal(soal.getJawabanTwk());
 			jawaban.setNilai(nilai.toString());
+			jawaban.setJawaban(request.getJawabanTWK());
 		}
 
-
+		jawaban.setCreatedDate(new Date());
 		jawabanSiswaRepository.save(jawaban);
+		response.setData(jawaban.getNilai());
 		response.setMessage("Success");
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 	private BigDecimal calculateResult(int soal, int jawabanBenar ){
-		BigDecimal result = BigDecimal.valueOf(100).divide(BigDecimal.valueOf(soal));
+		BigDecimal divisor = BigDecimal.valueOf(soal);
+		BigDecimal result = BigDecimal.valueOf(100).divide(divisor, 2, RoundingMode.HALF_UP);
 		result = result.multiply(BigDecimal.valueOf(jawabanBenar));
 
 		result = result.setScale(1, RoundingMode.HALF_UP);
@@ -2318,5 +2397,67 @@ public class SoalService {
 		response.setMessage("Success");
 		response.setData(jawabanUjianSiswa);
 		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@Transactional(readOnly = false)
+	public ResponseEntity<Object> jawabanUjianAllSiswa(String userUuid, String soalType) {
+		BaseResponse response = new BaseResponse();
+		List<JawabanSiswa> jawabanUjianSiswa = new ArrayList<>();
+		if(soalType != null && !"".equals(soalType)){
+			jawabanUjianSiswa = jawabanSiswaRepository.findByUserUuidAndSoalTypeStartsWith(userUuid, soalType);
+		} else {
+			jawabanUjianSiswa = jawabanSiswaRepository.findByUserUuid(userUuid);
+		}
+
+		List<JawabanSiswa> modifiedJawabanSiswa = jawabanUjianSiswa.stream()
+				.map(this::modifyDataHistoryUjian)
+				.toList();
+
+
+		response.setMessage("Success");
+		response.setData(modifiedJawabanSiswa);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	private JawabanSiswa modifyDataHistoryUjian(JawabanSiswa jawaban){
+		Optional<Ujian> dataUjian = ujianRepository.findById(jawaban.getUjianUuid());
+		String soalName = "";
+		if ("PILIHANGANDA".equals(jawaban.getSoalType())) {
+			Optional<SoalPilihanGanda> data = soalPilihanGandaRepository.findById(jawaban.getSoalUuid());
+			if (data.isPresent()) {
+				soalName = data.get().getNamaSoal();
+
+			}
+		} else if ("ESSAY".equals(jawaban.getSoalType())) {
+			Optional<SoalEssay> data = soalEssayRepository.findById(jawaban.getSoalUuid());
+			if (data.isPresent()) {
+				soalName = data.get().getNamaSoal();
+
+			}
+		} else if ("PAULI".equals(jawaban.getSoalType())) {
+			Optional<SoalPauli> data = soalPauliRepository.findById(jawaban.getSoalUuid());
+			if (data.isPresent()) {
+				soalName = data.get().getNamaSoal();
+			}
+		}else if (jawaban.getSoalType().contains("TKD")) {
+			Optional<SoalTKD> data = soalTKDRepository.findById(jawaban.getSoalUuid());
+			if (data.isPresent()) {
+
+				soalName = data.get().getNamaSoal();
+			}
+		} else if ("SOALHILANG".equals(jawaban.getSoalType())) {
+			Optional<SoalHilang> data = soalHilangRepository.findById(jawaban.getSoalUuid());
+			if (data.isPresent()) {
+				soalName = data.get().getNamaSoal();
+			}
+		} else if ("GANJILGENAP".equals(jawaban.getSoalType())) {
+			Optional<SoalGanjilGenap> data = soalGanjilGenapRepository.findById(jawaban.getSoalUuid());
+			if (data.isPresent()) {
+				soalName = data.get().getNamaSoal();
+			}
+		}
+		jawaban.setUjianName(dataUjian.get().getNamaUjian());
+		jawaban.setSoalName(soalName);
+		return jawaban;
 	}
 }

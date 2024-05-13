@@ -50,4 +50,7 @@ public class SoalPilihanGanda extends BaseEntity{
 	@Transient
 	private List<SoalAssetImage> assetImage;
 
+	@Transient
+	private String nilai;
+
 }
