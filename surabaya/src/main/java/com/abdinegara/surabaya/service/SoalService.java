@@ -1854,6 +1854,9 @@ public class SoalService {
 		MimeMessage message = javaMailSender.createMimeMessage();
 
 		try {
+			log.info("prepare send email to {}", to);
+			log.info("prepare send email bcc {}", bcc);
+			log.info("prepare send email subject {}", subject);
 
 			MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message, true);
 
@@ -1888,7 +1891,7 @@ public class SoalService {
 
 			javaMailSender.send(mimeMessageHelper.getMimeMessage());
 			log.info("success send email");
-		} catch (MessagingException e) {
+		} catch (Exception e) {
 			log.info("error sendMailHTML : {}", e.getMessage());
 		}
 	}
@@ -2099,7 +2102,7 @@ public class SoalService {
 		Optional<Ujian> dataUjian = ujianRepository.findById(data.getUjianUuid());
 		Siswa siswa = siswaRepository.findByUserUuid(data.getUserUuid());
 		data.setDetailUjian(dataUjian.get());
-		data.setNamaSiswa(siswa.getName());
+		data.setNamaSiswa( siswa == null ? "" : siswa.getName());
 		return data;
 	}
 
