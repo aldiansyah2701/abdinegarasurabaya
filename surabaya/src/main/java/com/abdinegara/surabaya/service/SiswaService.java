@@ -208,7 +208,7 @@ public class SiswaService {
 	                .map(this::modifyData) // Modify each Siswa entity
 	                .toList();
 
-	        response.setMessage("Data found successfully");
+	        response.setMessage("Data found successfully ok");
 	        response.setData(new PageImpl<>(modifiedSiswas, pageable, siswaPage.getTotalElements()));
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
